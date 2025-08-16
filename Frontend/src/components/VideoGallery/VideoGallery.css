@@ -1,0 +1,29 @@
+/* Grid + scroll for the gallery container only */
+.vg-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 per row */
+  column-gap: 16px;
+  row-gap: 10px;                 /* real space between rows */
+  width: 100%;
+  height: 100%;
+  overflow: auto;                /* scroll inside the display pane */
+
+  align-items: start;            /* cards size to their content (no stretch) */
+
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Pretty scrollbar (optional) */
+.vg-grid::-webkit-scrollbar { width: 10px; }
+.vg-grid::-webkit-scrollbar-thumb { background: rgba(212,169,77,0.55); border-radius: 8px; }
+.vg-grid::-webkit-scrollbar-track { background: rgba(234,198,122,0.18); }
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .vg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .vg-grid { grid-template-columns: 1fr; }
+}
