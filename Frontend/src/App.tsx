@@ -1,9 +1,8 @@
 import { useState } from "react";
 import "./App.css";
-import { TextInput, DropDown, ImageDropper, Button } from "./components";
+import { TextInput, DropDown, ImageDropper, Button, MakeCSV, VideoGallery } from "./components";
 import config from "../config/models.json";
-import MakeCSV from "./components/MakeCSV/MakeCSV";
-import VideoGallery from "./components/VideoGallery/VideoGallery";
+import { Search } from "lucide-react";
 
 function App() {
   const [text, setText] = useState("");
@@ -46,6 +45,22 @@ function App() {
         </div>
 
         {/* TopK */}
+        <div className="form-group text-input-icon">
+          <label className="form-label">Video</label>
+          <div className="input-wrapper">
+            <TextInput
+              placeholder="Enter video title here..."
+              onChange={setText}
+            />
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => console.log("Searching:", text)}
+            >
+              <Search size={18} strokeWidth={2} />
+            </button>
+          </div>
+        </div>
         <div className="form-group row">
           <div className="text-input-small">
               <label className="form-label">Frame index</label>
@@ -54,7 +69,7 @@ function App() {
                 onChange={setText}
               />
             </div>
-          <div className="form-group text-input-small">
+                    <div className="form-group text-input-small">
             <label className="form-label">Top K</label>
             <TextInput
               type="number"
