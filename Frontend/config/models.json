@@ -1,0 +1,21 @@
+{
+    "clip": {
+        "metrics": {
+            "l1": "L1 metrics",
+            "l2": "L2 metrics",
+            "cosine": "Cosine similarity"
+        },
+        "queryBy": {
+            "text": "Query by Embedding",
+            "image": "Query by Image"
+        }
+    },
+    "ocr": {
+        "metrics": {
+        },
+        "queryBy": {
+            "ocr": "Query by OCR"
+        }
+    }
+       
+}
