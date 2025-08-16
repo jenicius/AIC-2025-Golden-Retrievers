@@ -1,0 +1,28 @@
+.image-dropper {
+  border: 2px dashed #d4a373;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  background: #fff8e7;
+  color: #8c5e2c;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.image-dropper:hover {
+  background: #f5e6c8;
+  border-color: #8c5e2c;
+}
+
+.image-dropper.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.preview {
+  max-width: 100%;
+  max-height: 250px;
+  border-radius: 8px;
+  margin-top: 12px;
+}
