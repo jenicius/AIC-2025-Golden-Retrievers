@@ -6,7 +6,7 @@
             "cosine": "Cosine similarity"
         },
         "queryBy": {
-            "text": "Query by Embedding",
+            "text": "Query by Text Embedding",
             "image": "Query by Image"
         }
     },
