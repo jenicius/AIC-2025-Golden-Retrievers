@@ -1,0 +1,160 @@
+/* ===== MakeCSV (React-Bootstrap) =====
+   Uses :root vars from App.css:
+   --cream, --beige, --sand, --honey, --deep, --brown
+*/
+
+/* Card: compact, tall, stretches to section height */
+.rb-makecsv {
+  width: min(420px, 92%);
+  height: 100%;
+  display: flex;
+  background: var(--cream, #FFF8E7);
+  border: 1px solid var(--sand, #EAC67A);
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(184, 134, 11, 0.08);
+  flex: 1;
+}
+.rb-makecsv .card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  min-height: 0;
+}
+.rb-makecsv form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+}
+
+/* ---- File name row (label + input + button on one line) ---- */
+.rb-makecsv .input-addon {
+  background: rgba(234, 198, 122, 0.12);
+  color: var(--brown, #8B5E3C);
+  font-weight: 600;
+  border-color: var(--sand, #EAC67A);
+}
+.rb-makecsv .input-label { white-space: nowrap; }
+
+.rb-makecsv .input-retriever {
+  border-width: 1.5px;
+  border-color: var(--sand, #EAC67A);
+  border-top-right-radius: 0;   /* flush with button */
+  border-bottom-right-radius: 0;
+}
+.rb-makecsv .input-retriever:focus {
+  border-color: var(--honey, #D4A94D);
+  box-shadow: 0 0 0 0.2rem rgba(212, 169, 77, 0.22);
+}
+.rb-makecsv .input-btn {
+  border-top-left-radius: 0;    /* flush with input */
+  border-bottom-left-radius: 0;
+}
+.rb-makecsv .btn-retriever {
+  background: var(--honey, #D4A94D);
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.18);
+}
+.rb-makecsv .btn-retriever:hover { background: var(--deep, #B8860B); }
+.rb-makecsv .btn-retriever:disabled { opacity: 0.6; }
+
+/* ---- Items: add row + droplist side-by-side ---- */
+.rb-list-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* Add item (left) */
+.rb-addrow { flex: 1 1 60%; }
+.rb-addgroup .form-control {
+  border-color: var(--sand, #EAC67A);
+}
+.rb-addgroup .form-control:focus {
+  border-color: var(--honey, #D4A94D);
+  box-shadow: 0 0 0 0.2rem rgba(212, 169, 77, 0.22);
+}
+.btn-add {
+  border-color: var(--sand, #EAC67A);
+  color: var(--brown, #8B5E3C);
+  background: rgba(234, 198, 122, 0.08);
+}
+.btn-add:hover {
+  background: rgba(234, 198, 122, 0.18);
+  border-color: var(--honey, #D4A94D);
+}
+
+/* Droplist (right) */
+.rb-droplist { flex: 1 1 40%; display: flex; justify-content: flex-end; }
+
+.rb-items-toggle {
+  white-space: nowrap;
+  border-color: var(--sand, #EAC67A) !important;
+  background: rgba(234, 198, 122, 0.08) !important;
+  color: var(--brown, #8B5E3C) !important;
+  font-weight: 600;
+}
+
+/* Dropdown menu panel */
+.rb-items-menu {
+  min-width: 260px;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--sand, #EAC67A);
+  padding: 6px;
+  background: #fffdf7;
+}
+
+/* Each item row inside menu */
+.rb-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+.rb-menu-item:hover { background: rgba(234, 198, 122, 0.15); }
+
+.rb-menu-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--brown, #8B5E3C);
+}
+
+/* Delete control (inline SVG minus-in-a-circle) */
+.rb-del {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(220, 53, 69, 0.45);
+  background: rgba(220, 53, 69, 0.08);
+  color: #dc3545;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+.rb-del:hover {
+  background: rgba(220, 53, 69, 0.18);
+  border-color: rgba(220, 53, 69, 0.65);
+}
+
+/* Empty state */
+.rb-empty {
+  color: #8b7a5a;
+  cursor: default;
+}
+
+/* ---- Small screens ---- */
+@media (max-width: 480px) {
+  .rb-makecsv { width: 96%; }
+  .rb-makecsv .input-label { display: none; }
+  .rb-list-row { flex-direction: column; }
+  .rb-droplist { justify-content: stretch; }
+}
