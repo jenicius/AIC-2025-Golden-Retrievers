@@ -1,0 +1,43 @@
+.btn {
+  flex: 1;
+  padding: 12px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #d39c5f;
+  color: #fff;
+}
+
+/* Hover */
+.btn:hover:not(.disabled) {
+  background-color: #c28848;
+}
+
+/* Active (pressed down) */
+.btn:active:not(.disabled) {
+  transform: translateY(1px);
+}
+
+/* Toggle ON */
+.btn.active {
+  background-color: #8a5b2e;
+}
+
+/* Toggle OFF */
+.btn.inactive {
+  background-color: #e1c5a0;
+  color: #444;
+}
+
+.btn.disabled,
+.btn:disabled {
+  background-color: #ddd;
+  color: #888;
+  cursor: not-allowed;
+  box-shadow: none;
+}

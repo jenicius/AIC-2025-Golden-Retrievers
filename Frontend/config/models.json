@@ -6,15 +6,15 @@
             "cosine": "Cosine similarity"
         },
         "queryBy": {
-            "text": "Query by Text Embedding",
-            "image": "Query by Image"
+            "text": "Text",
+            "image": "Image"
         }
     },
     "ocr": {
         "metrics": {
         },
         "queryBy": {
-            "ocr": "Query by OCR"
+            "ocr": "OCR"
         }
     }
        

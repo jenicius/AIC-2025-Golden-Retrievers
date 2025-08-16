@@ -1,0 +1,77 @@
+/* Shared styling */
+.text-input {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--accent, #d4a373);
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--ink, #333);
+  background: #FFF8E7;
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease;
+  box-sizing: border-box;
+}
+
+/* Hover & focus */
+.text-input:focus {
+  border-color: var(--accent-dark, #8c5e2c);
+  box-shadow: 0 0 6px rgba(140, 94, 44, 0.35);
+}
+
+/* Placeholder */
+.text-input::placeholder {
+  color: #9c8f7e;
+  opacity: 0.8;
+}
+
+/* Number input spinner cleanup */
+.text-input::-webkit-outer-spin-button,
+.text-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.text-input[type=number] {
+  -moz-appearance: textfield; /* Firefox */
+}
+
+/* Special case: textarea */
+textarea.text-input {
+  min-height: 120px;
+  line-height: 1.5;
+  resize: none;          /* 🚫 remove resize handle */
+  overflow-y: auto;      /* scroll vertically if too long */
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* For WebKit browsers (Chrome, Safari, Edge) */
+textarea.text-input::-webkit-scrollbar {
+  width: 6px;                 /* slim scrollbar */
+}
+
+textarea.text-input::-webkit-scrollbar-track {
+  background: transparent;     /* no track background */
+}
+
+textarea.text-input::-webkit-scrollbar-thumb {
+  background-color: #d4a373;   /* thumb color */
+  border-radius: 6px;
+}
+
+textarea.text-input::-webkit-scrollbar-thumb:hover {
+  background-color: #8c5e2c;   /* darker on hover */
+}
+
+/* Remove scrollbar arrows */
+textarea.text-input::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* For Firefox */
+textarea.text-input {
+  scrollbar-width: thin;                /* makes scrollbar minimal */
+  scrollbar-color: #d4a373 transparent; /* thumb | track */
+}

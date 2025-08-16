@@ -1,0 +1,26 @@
+.dropdown {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--accent, #d4a373);
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--ink, #333);
+  background: #FFF8E7;
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease;
+  box-sizing: border-box;
+}
+
+/* Hover & focus */
+.dropdown:focus {
+  border-color: var(--accent-dark, #8c5e2c);
+  box-shadow: 0 0 6px rgba(140, 94, 44, 0.35);
+}
+
+/* Placeholder */
+.dropdown::placeholder {
+  color: #9c8f7e;
+  opacity: 0.8;
+}
