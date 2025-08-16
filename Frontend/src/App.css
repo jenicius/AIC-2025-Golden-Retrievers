@@ -1,22 +1,94 @@
-html, body, #root {
-  height: 100%;
-  margin: 0;
-  padding: 0;
+/* ===== Golden Retriever Theme ===== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@700&display=swap');
+
+:root {
+  --cream: #FFF8E7;
+  --beige: #F5E6C8;
+  --sand:  #EAC67A;
+  --honey: #D4A94D;
+  --deep:  #B8860B;
+  --brown: #8B5E3C;
 }
 
-.container {
+/* Reset */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body, #root { height: 100%; margin: 0; padding: 0; }
+body {
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #2f3a3a;
+  background: var(--cream);
+}
+
+/* ===== Full-screen split (2:3) ===== */
+.app-shell {
+  position: fixed;
+  inset: 0;
   display: flex;
-  flex-direction: row;
-  width: 100vw;   /* full width of viewport */
-  height: 100vh;  /* full height of viewport */
+  align-items: stretch;
+  min-height: 0;               /* <-- allow children to shrink */
 }
-
-.left {
-  flex: 1;
-  background-color: #F5E6C8;
-}
-
-.right {
+.app-left  { flex: 1; background: var(--beige); }
+.app-right {
   flex: 3;
-  background-color: #FFF8E7;
+  background: var(--cream);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;               /* <-- critical for nested scrollers */
+}
+
+/* ===== Right side vertical split: 1 : 2 : 5 ===== */
+.app-content {
+  width: 100%;
+  max-width: 1100px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;               /* <-- critical */
+}
+
+.app-header  { flex: 1 1 auto; display: flex; align-items: flex-end; justify-content: center; }
+.app-makecsv {
+  flex: 2 1 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  /* BAD: margin-top: '100%';  <-- remove this entirely */
+}
+.app-display {                 /* where the gallery lives */
+  flex: 5 1 auto;
+  min-height: 0;               
+  overflow: auto;              
+}
+
+/* Title */
+.app-title {
+  white-space: nowrap;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 700;
+  color: var(--deep);
+  margin: 0;
+  text-shadow: 0 1px 0 rgba(184,134,11,0.15);
+}
+.app-title::after {
+  content: "";
+  display: block;
+  height: 6px;
+  width: 36%;
+  margin: 6px auto 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--sand), var(--honey));
+  box-shadow: 0 2px 6px rgba(212,169,77,0.25);
+}
+
+/* Mobile */
+@media (max-width: 720px) {
+  .app-shell { flex-direction: column; }
+  .app-left, .app-right { flex: unset; height: 50%; }
+  .app-title { white-space: normal; }
 }
