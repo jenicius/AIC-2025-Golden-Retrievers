@@ -90,10 +90,13 @@ body {
 /* ----- Left-panel form helpers ----- */
 .form-group.row {
   display: flex;
-  gap: 16px;
-  align-items: flex-end;
   flex-direction: row;
-  flex-wrap: wrap;
+  align-items: center;
+}
+
+.form-group.row > * {
+  flex: 1;         /* each child takes equal width */
+  min-width: 0;    /* prevents flexbox overflow issues */
 }
 
 .form-group .text-input {
