@@ -50,7 +50,7 @@ function MakeCSV() {
               className="mcsv-input mcsv-grow"
               value={fileName}
               onChange={(e) => setFileName(e.target.value)}
-              placeholder="golden-retrievers"
+              placeholder="Dont't include .csv at the end"
             />
             <Button
               type="submit"
@@ -68,7 +68,7 @@ function MakeCSV() {
               className="mcsv-input"
               value={videoId}
               onChange={(e) => setVideoId(e.target.value)}
-              placeholder="vid_001"
+              placeholder=""
             />
 
             <label className="mcsv-label">frame_idx</label>
