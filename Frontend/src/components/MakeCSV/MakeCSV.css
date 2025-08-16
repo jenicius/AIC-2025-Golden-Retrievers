@@ -1,160 +1,146 @@
-/* ===== MakeCSV (React-Bootstrap) =====
-   Uses :root vars from App.css:
-   --cream, --beige, --sand, --honey, --deep, --brown
-*/
+/* =========================
+   MakeCSV — Golden Theme
+   ========================= */
 
-/* Card: compact, tall, stretches to section height */
-.rb-makecsv {
-  width: min(420px, 92%);
-  height: 100%;
-  display: flex;
-  background: var(--cream, #FFF8E7);
-  border: 1px solid var(--sand, #EAC67A);
+/* Card shell */
+.mcsv-card {
+  width: 100%;
+  border: 1px solid rgba(234, 198, 122, 0.55);
   border-radius: 14px;
-  box-shadow: 0 6px 16px rgba(184, 134, 11, 0.08);
-  flex: 1;
+  box-shadow: 0 8px 18px rgba(184, 134, 11, 0.10);
+  background: var(--cream);
 }
-.rb-makecsv .card-body {
-  flex: 1;
+
+/* Layout */
+.mcsv {
   display: flex;
   flex-direction: column;
-  padding: 12px 14px;
-  min-height: 0;
+  gap: 8px;
 }
-.rb-makecsv form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  height: 100%;
-}
-
-/* ---- File name row (label + input + button on one line) ---- */
-.rb-makecsv .input-addon {
-  background: rgba(234, 198, 122, 0.12);
-  color: var(--brown, #8B5E3C);
-  font-weight: 600;
-  border-color: var(--sand, #EAC67A);
-}
-.rb-makecsv .input-label { white-space: nowrap; }
-
-.rb-makecsv .input-retriever {
-  border-width: 1.5px;
-  border-color: var(--sand, #EAC67A);
-  border-top-right-radius: 0;   /* flush with button */
-  border-bottom-right-radius: 0;
-}
-.rb-makecsv .input-retriever:focus {
-  border-color: var(--honey, #D4A94D);
-  box-shadow: 0 0 0 0.2rem rgba(212, 169, 77, 0.22);
-}
-.rb-makecsv .input-btn {
-  border-top-left-radius: 0;    /* flush with input */
-  border-bottom-left-radius: 0;
-}
-.rb-makecsv .btn-retriever {
-  background: var(--honey, #D4A94D);
-  border: none;
-  color: #fff;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.18);
-}
-.rb-makecsv .btn-retriever:hover { background: var(--deep, #B8860B); }
-.rb-makecsv .btn-retriever:disabled { opacity: 0.6; }
-
-/* ---- Items: add row + droplist side-by-side ---- */
-.rb-list-row {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-}
-
-/* Add item (left) */
-.rb-addrow { flex: 1 1 60%; }
-.rb-addgroup .form-control {
-  border-color: var(--sand, #EAC67A);
-}
-.rb-addgroup .form-control:focus {
-  border-color: var(--honey, #D4A94D);
-  box-shadow: 0 0 0 0.2rem rgba(212, 169, 77, 0.22);
-}
-.btn-add {
-  border-color: var(--sand, #EAC67A);
-  color: var(--brown, #8B5E3C);
-  background: rgba(234, 198, 122, 0.08);
-}
-.btn-add:hover {
-  background: rgba(234, 198, 122, 0.18);
-  border-color: var(--honey, #D4A94D);
-}
-
-/* Droplist (right) */
-.rb-droplist { flex: 1 1 40%; display: flex; justify-content: flex-end; }
-
-.rb-items-toggle {
-  white-space: nowrap;
-  border-color: var(--sand, #EAC67A) !important;
-  background: rgba(234, 198, 122, 0.08) !important;
-  color: var(--brown, #8B5E3C) !important;
-  font-weight: 600;
-}
-
-/* Dropdown menu panel */
-.rb-items-menu {
-  min-width: 260px;
-  max-height: 260px;
-  overflow-y: auto;
-  border: 1px solid var(--sand, #EAC67A);
-  padding: 6px;
-  background: #fffdf7;
-}
-
-/* Each item row inside menu */
-.rb-menu-item {
+.mcsv-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  padding: 6px 8px;
+}
+.mcsv-grow   { flex: 1 1 0; min-width: 0; }
+.mcsv-shrink { flex: 0 0 auto; }
+
+/* Labels / Inputs */
+.mcsv-label {
+  background: var(--beige);
+  color: var(--brown);
+  font-weight: 600;
+  border: 1px solid rgba(234, 198, 122, 0.7);
   border-radius: 8px;
-}
-.rb-menu-item:hover { background: rgba(234, 198, 122, 0.15); }
-
-.rb-menu-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  padding: 8px 10px;
+  line-height: 1;
   white-space: nowrap;
-  color: var(--brown, #8B5E3C);
+}
+.mcsv-input {
+  border: 1px solid rgba(234, 198, 122, 0.7);
+  min-width: 140px;
+  background: #fff;
+}
+.mcsv-idx { width: 120px; }
+
+/* Golden buttons (override Bootstrap primary) */
+.mcsv-btn,
+.mcsv-items-toggle {
+  background: var(--honey) !important;
+  border-color: var(--honey) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(184,134,11,0.18);
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 8px 14px;
+}
+.mcsv-btn:hover,
+.mcsv-items-toggle:hover {
+  background: var(--deep) !important;
+  border-color: var(--deep) !important;
+}
+.mcsv-items-toggle:focus {
+  box-shadow: none !important;
 }
 
-/* Delete control (inline SVG minus-in-a-circle) */
-.rb-del {
+/* =========================
+   Items dropdown
+   ========================= */
+
+/* Remove any outer “bounding box” decoration around Items dropdown */
+.mcsv-items {
+  position: relative;
+  display: inline-block;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* React-Bootstrap wrapper node—strip styles too */
+.mcsv-items > .dropdown,
+.mcsv-items > .btn-group {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.mcsv-items > .dropdown:focus-within {
+  box-shadow: none !important;
+}
+
+/* Menu: allow long text, cap size for viewport */
+.mcsv-items-menu {
+  width: max-content;    /* grow to fit longest item */
+  min-width: 280px;
+  max-width: 80vw;       /* but not wider than viewport */
+  max-height: 50vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 10px;
+}
+
+/* Row + text (wrap, no ellipsis) */
+.mcsv-items-row {
   display: grid;
-  place-items: center;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 8px;
+  padding: 6px 2px;
+}
+.mcsv-items-text {
+  white-space: normal;
+  word-break: break-word;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.25;
+}
+.mcsv-items-empty {
+  display: block;
+  padding: 4px 6px;
+  color: #666;
+}
+
+/* Delete chip */
+.mcsv-items-del {
+  border: 0;
+  background: rgba(212, 169, 77, 0.25);
+  color: var(--deep);
+  border-radius: 8px;
   width: 28px;
   height: 28px;
-  border-radius: 50%;
-  border: 1px solid rgba(220, 53, 69, 0.45);
-  background: rgba(220, 53, 69, 0.08);
-  color: #dc3545;
+  line-height: 28px;
+  text-align: center;
+  font-weight: 700;
   cursor: pointer;
-  padding: 0;
-  line-height: 1;
 }
-.rb-del:hover {
-  background: rgba(220, 53, 69, 0.18);
-  border-color: rgba(220, 53, 69, 0.65);
+.mcsv-items-del:hover {
+  background: rgba(212, 169, 77, 0.35);
 }
 
-/* Empty state */
-.rb-empty {
-  color: #8b7a5a;
-  cursor: default;
-}
-
-/* ---- Small screens ---- */
-@media (max-width: 480px) {
-  .rb-makecsv { width: 96%; }
-  .rb-makecsv .input-label { display: none; }
-  .rb-list-row { flex-direction: column; }
-  .rb-droplist { justify-content: stretch; }
-}
+/* Prevent app-wide form rules from stretching our buttons */
+.mcsv .btn { flex: 0 0 auto; }
