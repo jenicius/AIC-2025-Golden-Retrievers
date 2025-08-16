@@ -90,10 +90,13 @@ body {
 /* ----- Left-panel form helpers ----- */
 .form-group.row {
   display: flex;
-  gap: 16px;
-  align-items: flex-end;
   flex-direction: row;
-  flex-wrap: wrap;
+  align-items: center;
+}
+
+.form-group.row > * {
+  flex: 1;         /* each child takes equal width */
+  min-width: 0;    /* prevents flexbox overflow issues */
 }
 
 .form-group .text-input {
@@ -103,6 +106,35 @@ body {
 }
 
 .text-large .text-input { min-height: 100px; }
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.input-wrapper .text-input {
+  width: 100%;
+  min-height: 44px;
+  padding-right: 40px; /* space so text doesn't overlap icon */
+}
+
+.icon-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  color: var(--honey);
+}
 
 .form-group.button-row {
   display: flex;
