@@ -17,7 +17,7 @@ function App() {
 
   // Metrics = values under selected model
   const metricOptions = modelOption
-    ? Object.values(config[modelOption].metrics)
+    ? (Object.values(config[modelOption].metrics) as string[])
     : [];
 
   // QueryBy = entries under selected model
@@ -46,15 +46,43 @@ function App() {
         </div>
 
         {/* TopK */}
-        <div className="form-group text-input-small">
-          <label className="form-label">Top K</label>
-          <TextInput
-            type="number"
-            min={1}
-            value={topK}
-            onChange={setTopK}
-            placeholder="Number"
-          />
+        <div className="form-group row">
+          <div className="text-input-small">
+              <label className="form-label">Frame index</label>
+              <TextInput
+                placeholder="Enter frame index here..."
+                onChange={setText}
+              />
+            </div>
+          <div className="form-group text-input-small">
+            <label className="form-label">Top K</label>
+            <TextInput
+              type="number"
+              min={1}
+              value={topK}
+              onChange={(value) => setTopK(Number(value))}
+              placeholder="Number"
+            />
+          </div>
+        </div>
+
+        {/* Row: Frame ID + Frame ID Range */}
+        <div className="form-group row">
+          
+          <div className="text-input-small">
+            <label className="form-label">Keyframe ID</label>
+            <TextInput
+              placeholder="Enter frame index here..."
+              onChange={setText}
+            />
+          </div>
+          <div className="text-input-small">
+            <label className="form-label">Frame ID Range</label>
+            <TextInput
+              placeholder="Enter frame index range here..."
+              onChange={setText}
+            />
+          </div>
         </div>
 
         {/* Query by Text */}
