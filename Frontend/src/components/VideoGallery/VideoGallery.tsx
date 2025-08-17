@@ -8,7 +8,7 @@ export default function VideoGallery() {
     Array.from({ length: 500 }, (_, i) => ({
       youtube_id: "dQw4w9WgXcQ",
       start_time: i,                 // e.g., 0s, 1s, 2s, ... 499s
-      preview_image_directory: "",
+      preview_image_directory: "/TEST/hello.jpg",
     }))
   );
   // Optional external updates
