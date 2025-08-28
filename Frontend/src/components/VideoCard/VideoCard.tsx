@@ -7,25 +7,18 @@ import {
   useState,
   memo,
 } from "react";
-import "react-lite-youtube-embed/dist/LiteYouTubeEmbed.css"; // player styles
-import "./VideoCard.css"; // <-- card-only CSS
+import "react-lite-youtube-embed/dist/LiteYouTubeEmbed.css";
+import "./VideoCard.css";
 
-// Reuse this type across components
 export type VideoItem = {
   youtube_id: string;
-  start_time: number;              // seconds
-  preview_image_directory: string; // preferred preview url (may 404)
+  start_time: number;               // seconds
+  preview_image_directory: string;  // direct image path/URL (e.g., /previews/abc.jpg)
 };
 
 const LiteYouTubeEmbed = lazy(() => import("react-lite-youtube-embed"));
-const DEFAULT_FPS = 30;
 
 /* ---------- helpers ---------- */
-
-function secondsToFrameIdx(sec: number, fps = DEFAULT_FPS) {
-  if (!Number.isFinite(sec)) return 0;
-  return Math.max(0, Math.round(sec * fps));
-}
 
 function getScrollParent(el: Element | null): Element | null {
   let node: Element | null = el;
@@ -60,58 +53,28 @@ function useInView<T extends Element>(opts?: IntersectionObserverInit) {
   return { ref, inView };
 }
 
-/* Resolve first valid preview: preferred -> YT HQ -> YT SD */
-function resolvePreviewUrl(
-  youtube_id: string,
-  preferred?: string
-): Promise<string> {
-  const candidates = [
-    preferred,
-    `https://img.youtube.com/vi/${youtube_id}/hqdefault.jpg`,
-    `https://i.ytimg.com/vi/${youtube_id}/sddefault.jpg`,
-  ].filter(Boolean) as string[];
-
-  return new Promise((resolve, reject) => {
-    let i = 0;
-    const next = () => {
-      if (i >= candidates.length) return reject(new Error("No preview"));
-      const url = candidates[i++];
-      const img = new Image();
-      img.onload = () => resolve(url);
-      img.onerror = next;
-      img.src = url;
-    };
-    next();
-  });
-}
-
 /* ---------- component ---------- */
 
 type Props = {
   item: VideoItem;
-  fps?: number;
   className?: string;
 };
 
-const VideoCard = memo(function VideoCard({ item, fps = DEFAULT_FPS }: Props) {
+const VideoCard = memo(function VideoCard({ item }: Props) {
   const { ref, inView } = useInView<HTMLDivElement>();
   const [showVideo, setShowVideo] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  // With no FPS, use a simple integer-ish “frame index”
   const frameIdx = useMemo(
-    () => secondsToFrameIdx(item.start_time, fps),
-    [item.start_time, fps]
+    () => Math.max(0, Math.round(item.start_time)),
+    [item.start_time]
   );
 
+  // preview_image_directory is already the image path
   useEffect(() => {
-    let cancelled = false;
-    resolvePreviewUrl(item.youtube_id, item.preview_image_directory)
-      .then((url) => !cancelled && setPreviewUrl(url))
-      .catch(() => !cancelled && setPreviewUrl(null));
-    return () => {
-      cancelled = true;
-    };
-  }, [item.youtube_id, item.preview_image_directory]);
+    setPreviewUrl(item.preview_image_directory || null);
+  }, [item.preview_image_directory]);
 
   const addToCsv = () => {
     window.dispatchEvent(

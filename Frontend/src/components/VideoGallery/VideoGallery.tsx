@@ -4,16 +4,13 @@ import "./VideoGallery.css"; // <-- grid/scroll-only CSS
 
 export default function VideoGallery() {
   // Own the list here; update from elsewhere if you like
-  const [videos, setVideos] = useState<VideoItem[]>([
-    { youtube_id: "dQw4w9WgXcQ", start_time: 12, preview_image_directory: "" },
-    { youtube_id: "9bZkp7q19f0",  start_time: 5,  preview_image_directory: "" },
-    { youtube_id: "3JZ_D3ELwOQ",  start_time: 8,  preview_image_directory: "" },
-    { youtube_id: "M7lc1UVf-VE",  start_time: 15, preview_image_directory: "" },
-    { youtube_id: "e-ORhEE9VVg",  start_time: 20, preview_image_directory: "" },
-    { youtube_id: "60ItHLz5WEA",  start_time: 10, preview_image_directory: "" },
-    { youtube_id: "kXYiU_JCYtU",  start_time: 7,  preview_image_directory: "" },
-  ]);
-
+  const [videos, setVideos] = useState<VideoItem[]>(() =>
+    Array.from({ length: 500 }, (_, i) => ({
+      youtube_id: "dQw4w9WgXcQ",
+      start_time: i,                 // e.g., 0s, 1s, 2s, ... 499s
+      preview_image_directory: "/TEST/hello.jpg",
+    }))
+  );
   // Optional external updates
   useEffect(() => {
     type SetEvt = CustomEvent<VideoItem[]>;
