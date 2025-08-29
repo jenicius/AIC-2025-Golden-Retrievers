@@ -22,6 +22,7 @@ npm install
 npm run build
 ```
 - Lưu ý là lúc tạo build sẽ hơi lâu, mọi người đợi tí
+- Dấu hiệu cho thấy đã build ra gì đó là mọi người sẽ thấy thư mục dist 
 - Ở những lần sau, khi code có cập nhật thì mọi người phải build lại 
 
 ## 4. Chạy
