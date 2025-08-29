@@ -1,101 +1,38 @@
-import { useEffect, useState } from "react";
 import { Card, Form, Button, Dropdown } from "react-bootstrap";
 import "./MakeCSV.css";
-import { exportToCSV } from "../../utils/outputCSV";
 import DropDown from "../DropDown/DropDown";
-
-export type Item = {
-  id: string;
-  video_id: string;
-  frame_idx: number;
-  answer?: string; // only for QA
-};
+import { useMakeCSV } from "./useMakeCSV";
 
 function MakeCSV() {
-  const [queryType, setQueryType] = useState("");
-  const [fileName, setFileName] = useState("");
-  const [videoId, setVideoId] = useState("");
-  const [frameIdx, setFrameIdx] = useState<number | "">(0);
-  const [answer, setAnswer] = useState(""); // new
-  const [items, setItems] = useState<Item[]>([]);
-
-  const isQA = queryType === "QA";
-
-  // If user leaves QA, clear the answer box so we don't carry stale data
-  useEffect(() => {
-    if (!isQA) setAnswer("");
-  }, [isQA]);
-
-  // useEffect(() => {
-  //   const handler = (e: Event) => {
-  //     const ce = e as CustomEvent<{ video_id?: string; frame_idx?: number }>;
-  //     const { video_id, frame_idx } = ce.detail || {};
-  //     if (!video_id || typeof frame_idx !== "number" || !Number.isFinite(frame_idx)) return;
-
-  //     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  //     setItems((prev) => [...prev, { id, video_id, frame_idx }]); // no answer via event
-  //   };
-  //   window.addEventListener("csv:add", handler as EventListener);
-  //   return () => window.removeEventListener("csv:add", handler as EventListener);
-  // }, []);
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const ce = e as CustomEvent<{ video_id?: string; frame_idx?: number }>;
-      const { video_id, frame_idx } = ce.detail || {};
-      if (!video_id || typeof frame_idx !== "number" || !Number.isFinite(frame_idx)) return;
-
-      setVideoId(video_id);
-      setFrameIdx(frame_idx);
-    };
-
-    window.addEventListener("csv:add", handler as EventListener);
-    return () => window.removeEventListener("csv:add", handler as EventListener);
-  }, []);
-
-  const idxInvalid = frameIdx === "" || !Number.isFinite(Number(frameIdx));
-  const addDisabled =
-    !videoId.trim() || idxInvalid || (isQA && !answer.trim());
-
-  const addItem = () => {
-    const idx = typeof frameIdx === "string" ? Number(frameIdx) : frameIdx;
-    if (!videoId.trim() || !Number.isFinite(idx)) return;
-    if (isQA && !answer.trim()) return;
-
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    setItems((prev) => [
-      ...prev,
-      { id, video_id: videoId.trim(), frame_idx: idx, ...(isQA ? { answer: answer.trim() } : {}) },
-    ]);
-  };
-
-  const removeAt = (i: number) =>
-    setItems((prev) => prev.filter((_, j) => j !== i));
-
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // If your CSV schema differs by query type, pass queryType to exportToCSV or branch here.
-    exportToCSV(items, fileName);
-  };
+  const {
+    queryType, setQueryType,
+    fileName, setFileName,
+    videoId, setVideoId,
+    frameIdx, setFrameIdx,
+    numEvents, setNumEvents, 
+    answer, setAnswer,
+    items, isQA, isTRAKE,
+    idxInvalid, numEventsInvalid,
+    addDisabled, addItem, removeAt, onSubmit,
+  } = useMakeCSV();
 
   return (
     <Card className="mcsv-card">
       <Card.Body>
         <form className="mcsv" onSubmit={onSubmit}>
-          {/* Row 1: file name + query type + Make CSV */}
           <div className="mcsv-row">
             <label className="mcsv-label">File Name</label>
             <Form.Control
               className="mcsv-input mcsv-grow"
               value={fileName}
               onChange={(e) => setFileName(e.target.value)}
-              placeholder="Dont't include .csv at the end"
+              placeholder="Don't include .csv at the end"
             />
 
             <DropDown
               options={["KIS", "QA", "TRAKE"]}
               value={queryType}
-              onChange={(option) => setQueryType(option)} 
+              onChange={(value: string) => setQueryType(value as "" | "KIS" | "QA" | "TRAKE")}
             />
 
             <Button
@@ -107,14 +44,13 @@ function MakeCSV() {
             </Button>
           </div>
 
-          {/* Row 2: video_id + frame_idx + Answer (QA only) + Add + Items */}
           <div className="mcsv-row">
             <label className="mcsv-label">video_id</label>
             <Form.Control
               className="mcsv-input"
               value={videoId}
               onChange={(e) => setVideoId(e.target.value)}
-              placeholder=""
+              placeholder="video123"
             />
 
             <label className="mcsv-label">frame_idx</label>
@@ -122,21 +58,37 @@ function MakeCSV() {
               className="mcsv-input mcsv-idx"
               type="number"
               value={frameIdx}
-              onChange={(e) =>
-                setFrameIdx(e.target.value === "" ? "" : Number(e.target.value))
-              }
+              onChange={(e) => setFrameIdx(e.target.value)}
               placeholder="0"
               isInvalid={idxInvalid}
             />
 
-            <label className="mcsv-label">Answer</label>
-            <Form.Control
-              className="mcsv-input"
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              placeholder="bindepzai"
-              disabled={!isQA} 
-            />
+            {isQA && (
+              <>
+                <label className="mcsv-label">Answer</label>
+                <Form.Control
+                  className="mcsv-input"
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  placeholder="answer text"
+                />
+              </>
+            )}
+
+            {isTRAKE && (
+              <>
+                <label className="mcsv-label">num_events</label>
+                <Form.Control
+                  className="mcsv-input mcsv-idx"
+                  type="number"
+                  value={numEvents}
+                  onChange={(e) => setNumEvents(e.target.value)}
+                  placeholder="0"
+                  isInvalid={numEventsInvalid}
+                  min={1}
+                />
+              </>
+            )}
 
             <Button
               type="button"
@@ -147,7 +99,6 @@ function MakeCSV() {
               Add
             </Button>
 
-            {/* Items dropdown isolated in a non-flexing wrapper */}
             <div className="mcsv-items mcsv-shrink">
               <Dropdown align="end">
                 <Dropdown.Toggle className="mcsv-items-toggle">
@@ -159,16 +110,11 @@ function MakeCSV() {
                   ) : (
                     items.map((it, i) => (
                       <div className="mcsv-items-row" key={it.id}>
-                        <span
-                          className="mcsv-items-text"
-                          title={
-                            it.answer
-                              ? `${it.video_id} — ${it.frame_idx} — ${it.answer}`
-                              : `${it.video_id} — ${it.frame_idx}`
-                          }
-                        >
-                          {it.video_id} — {it.frame_idx}
-                          {it.answer ? <> — {it.answer}</> : null}
+                        <span className="mcsv-items-text">
+                          {it.video_id}
+                          {it.answer && <> — {it.frame_idx} — {it.answer}</>}
+                          {it.frames && <> — [{it.frames.join(", ")}]</>}
+                          {!it.answer && !it.frames && <> — {it.frame_idx}</>}
                         </span>
                         <button
                           type="button"
