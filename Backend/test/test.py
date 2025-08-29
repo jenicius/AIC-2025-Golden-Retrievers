@@ -1,56 +1,113 @@
+# backend/test_full_api.py
 import requests
+import os
 import time
 
+# --- Configuration ---
+BASE_URL = "http://localhost:8000/api/query"
 
-API_URL = "http://localhost:8000/api/query/text"
-
-PAYLOAD = {
-    "model": "ViT-L-14-quickgelu", 
-    "metric": "cosine",
-    "topK": 5,
-    "queryText": "A lantern butterfly"
-}
-
-def run_test():
+def test_text_query():
+    """Tests the text search endpoint.
+    We will request a model that is DIFFERENT from the default one
+    to test the dynamic model loading logic.
     """
-    Sends a POST request to the text search API and prints the response.
-    """
-    print("--- Testing Live Text Search API Endpoint ---")
-    print(f"Sending request to: {API_URL}")
-    print(f"Payload: {PAYLOAD}")
+    print("\n--- 1. Testing Text Query API ---")
+    url = f"{BASE_URL}/text"
+    
+    payload = {
+        "model": "ViT-L-14",  # Not the default, to trigger a model load
+        "metric": "cosine",
+        "topK": 3,
+        "queryText": "a person riding a bicycle"
+    }
+    
+    print(f"Requesting with model: {payload['model']}")
+    
+    try:
+        start_time = time.time()
+        response = requests.post(url, json=payload, timeout=120) # 2 min timeout
+        response.raise_for_status()
+        end_time = time.time()
+        
+        print(f"✅ Text Query SUCCESS in {end_time - start_time:.2f} seconds.")
+        print("Response:", response.json())
+        
+    except Exception as e:
+        print(f"❌ Text Query FAILED: {e}")
+        if 'response' in locals():
+            print("Server Response Body:", response.text)
+
+
+def test_image_query():
+    """Tests the image search endpoint with a dummy image."""
+    print("\n--- 2. Testing Image Query API ---")
+    url = f"{BASE_URL}/image"
+    
+    test_image_name = '2117.jpg'
+    test_image_path = os.path.join(os.path.dirname(__file__), test_image_name)
+    
+    form_data = {
+        "model": (None, "ViT-H-14-quickgelu"),
+        "metric": (None, "l2"),
+        "topK": (None, "3"),
+    }
+    
+    files = {
+        "image": (test_image_name, open(test_image_path, "rb"), "image/jpeg")
+    }
+    
+    print(f"Requesting with model: {form_data['model'][1]}")
 
     try:
         start_time = time.time()
-        
-        response = requests.post(API_URL, json=PAYLOAD, timeout=60) 
-        
+        response = requests.post(url, data=form_data, files=files, timeout=120)
         response.raise_for_status()
-        
         end_time = time.time()
         
-        print(f"\nSUCCESS! Request completed in {end_time - start_time:.2f} seconds.")
-        print("Status Code:", response.status_code)
+        print(f"✅ Image Query SUCCESS in {end_time - start_time:.2f} seconds.")
+        print("Response:", response.json())
+
+    except Exception as e:
+        print(f"❌ Image Query FAILED: {e}")
+        if 'response' in locals():
+            print("Server Response Body:", response.text)
+            
+    finally:
+        files["image"][1].close()
+
+def test_ocr_query():
+    """Tests the OCR search endpoint."""
+    print("\n--- 3. Testing OCR Query API ---")
+    url = f"{BASE_URL}/ocr"
+    
+    # Note: The model/metric are required by the schema but ignored by the OCR logic
+    payload = {
+        "model": "ocr", 
+        "metric": "text-match",
+        "topK": 5,
+        "queryText": "warning" # A sample word to search for in your OCR data
+    }
+    
+    print(f"Requesting with query: '{payload['queryText']}'")
+    
+    try:
+        start_time = time.time()
+        response = requests.post(url, json=payload, timeout=120)
+        response.raise_for_status()
+        end_time = time.time()
         
-        results = response.json()
-        print("\n--- Search Results ---")
-        for i, item in enumerate(results.get('results', [])):
-             print(f"Result {i+1}:")
-             print(f"  - Video Name: {item.get('video_name')}")
-             print(f"  - ID: {item.get('id')}")
-             print(f"  - YouTube ID: {item.get('youtube_id')}")
-             print(f"  - Start Time: {item.get('start_time')} seconds")
+        print(f"✅ OCR Query SUCCESS in {end_time - start_time:.2f} seconds.")
+        print("Response:", response.json())
+        
+    except Exception as e:
+        print(f"❌ OCR Query FAILED: {e}")
+        if 'response' in locals():
+            print("Server Response Body:", response.text)
 
-    except requests.exceptions.Timeout:
-        print("\nFAILED: The request timed out. The server might be too slow to respond.")
-    except requests.exceptions.HTTPError as http_err:
-        print(f"\nFAILED: HTTP Error occurred: {http_err}")
-        print("Server Response Body:", response.text)
-    except requests.exceptions.ConnectionError as conn_err:
-        print(f"\nFAILED: Connection Error. Is the backend server running?")
-        print(f"Details: {conn_err}")
-    except Exception as err:
-        print(f"\nFAILED: An unexpected error occurred: {err}")
-
-# --- Run the test ---
 if __name__ == "__main__":
-    run_test()
+    print("Starting full API test suite...")
+    # Make sure your FastAPI server is running before executing this script!
+    test_text_query()
+    test_image_query()
+    test_ocr_query()
+    print("\nAll tests completed.")
