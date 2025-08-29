@@ -73,6 +73,51 @@ export function fillCSV(data: Item[], maxRow: number, frameStep: number): Item[]
   return result;
 }
 
+export function fillCSVforTRAKE(
+  data: Item[],
+  maxRow: number,
+  frameStep: number,
+  num_events: number
+): Item[] {
+  if (!Array.isArray(data) || data.length === 0) return [];
+
+  let result = data.filter(
+    it => Array.isArray(it.frames) && it.frames.length === num_events
+  );
+
+  if (result.length >= maxRow) {
+    return result.slice(0, maxRow);
+  }
+
+  let remainingRows = maxRow - result.length;
+  let cnt = 1;
+
+  while (remainingRows > 0) {
+    for (const it of result) {
+      if (remainingRows <= 0) break;
+
+      const newEntry: Item = {
+        ...it,
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        frame_idx: it.frame_idx,
+        frames: Array.isArray(it.frames)
+          ? it.frames.map(f => f + cnt * frameStep)
+          : [],
+      };
+
+      result.push(newEntry);
+      remainingRows--;
+    }
+    cnt++;
+  }
+
+  return result;
+}
+
+
+
+
+
 function downloadCSV(lines: string[], filename: string) {
   const csv = "\uFEFF" + lines.join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -142,22 +187,25 @@ export function TRAKEtoCSV(data: Item[], filename: string, num_events: number) {
     Number.isFinite((fillCsvConfig as any).maxRow) && (fillCsvConfig as any).maxRow > 0
       ? Math.floor((fillCsvConfig as any).maxRow)
       : data.length;
+
   const frameStep =
     Number.isFinite((fillCsvConfig as any).frameStep) && (fillCsvConfig as any).frameStep > 0
       ? Math.floor((fillCsvConfig as any).frameStep)
       : 1;
-  const filled = fillCSV(data, maxRow, frameStep);  
 
-  const lines = filled
-    .filter((it: any) => Array.isArray(it.frames) && it.frames.length === num_events)
-    .map((it: any) => {
-      return [it.video_id, ...it.frames.map(String)].join(",");
-    });
+  const filled = fillCSVforTRAKE(data, maxRow, frameStep, num_events);
+  console.log(filled)
+  console.log(data)
 
-  if (lines.length === 0) {
+  if (filled.length === 0) {
     alert("No TRAKE rows with full capacity found.");
     return;
   }
 
+  const lines = filled.map(
+    (it: Item) => [it.video_id, ...((it.frames ?? []).map(String))].join(",")
+  );
+
   downloadCSV(lines, filename);
 }
+
