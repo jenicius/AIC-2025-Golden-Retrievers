@@ -57,32 +57,28 @@ export function useMakeCSV() {
 
     setItems((prev) => {
       if (isTRAKE) {
-        const existing = prev.find((it) => it.video_id === vid);
-        if (existing) {
-          const frames = existing.frames || [];
-          if (frames.length >= nEvents) {
-            alert(`Video ${vid} already has ${nEvents} frames (max capacity).`);
-            return prev;
-          }
-          if (frames.includes(idx)) {
-            alert(`Frame ${idx} already exists for ${vid}.`);
-            return prev;
-          }
-          return prev.map((it) =>
-            it.video_id === vid
-              ? { ...it, frames: [...frames, idx], frame_idx: idx }
-              : it
-          );
+        const candidates = prev.filter((it) => it.video_id === vid);
+        const notFull = candidates.find((it) => (it.frames?.length || 0) < nEvents);
+        if (notFull) {
+            if(notFull.frames?.includes(idx)) {
+                alert(`Frame ${idx} already exists for video ${vid}.`);
+                return prev;
+            }
+            return prev.map((it) => {
+                if (it === notFull) {
+                    const newFrames = [...(it.frames || []), idx].sort((a, b) => a - b);
+                    return { ...it, frames: newFrames };
+                }
+                return it;
+            });
         }
-        return [
-          ...prev,
-          {
+        const newItem: Item = {
             id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
             video_id: vid,
-            frame_idx: idx,
+            frame_idx: -1,
             frames: [idx],
-          },
-        ];
+        };
+        return [...prev, newItem];
       }
       return [
         ...prev,
