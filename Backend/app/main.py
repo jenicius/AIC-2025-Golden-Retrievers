@@ -4,7 +4,7 @@ from app.api.router import api_router
 
 app = FastAPI(title="Golden Retrievers AI API")
 
-origins = ["http://localhost:5173"]
+origins = ["http://localhost:5173", "http://localhost:4173"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
