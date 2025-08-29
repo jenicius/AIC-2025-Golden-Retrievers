@@ -25,30 +25,30 @@ function App() {
     ? Object.entries(config[modelOption].queryBy) // [["text","Query by Embedding"],["image","Query by Image"]]
     : [];
 
-  const handleOnClickQuery = (key: string) => {
-    setQueryOption(key)
-    if(key === "ocr") {
-      queryByOCR(text, topK, modelOption, metricOption);
-      console.log("query ocr")
-    }
-    else if(key === "text") {
-      queryByText(text, topK, modelOption, metricOption);
-    }
-    else if (key === "image") {
-      if(imageFile) {
-        console.log(imageFile)
-        queryByImage(imageFile, topK, modelOption, metricOption)
+  const handleOnClickQuery = async (key: string) => {
+  setQueryOption(key);
+
+  try {
+    if (key === "ocr") {
+      const data = await queryByOCR(text, topK, modelOption, metricOption);
+      window.dispatchEvent(new CustomEvent("gallery:set", { detail: data.results }));
+    } else if (key === "text") {
+      const data = await queryByText(text, topK, modelOption, metricOption);
+      window.dispatchEvent(new CustomEvent("gallery:set", { detail: data.results }));
+    } else if (key === "image") {
+      if (imageFile) {
+        const data = await queryByImage(imageFile, topK, modelOption, metricOption);
+        window.dispatchEvent(new CustomEvent("gallery:set", { detail: data.results }));
+      } else {
+        console.log("There is no image");
       }
-      else {
-        console.log("There is no image")
-      }
+    } else {
+      console.log("There is no options else");
     }
-    else {
-      console.log("There is no options else")
-    }
-    // console.log(imageFile)
-    // console.log(queryOption)
+  } catch (err) {
+    console.error("Query failed:", err);
   }
+};
 
   return (
     <div className="app-shell">

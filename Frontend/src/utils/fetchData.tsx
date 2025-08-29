@@ -5,17 +5,10 @@ export async function queryByText(
   model: string,
   metric: string
 ) {
-  const res = await fetch("http://127.0.0.1:8000/text", {
-    method: "POST",                     // or "GET" depending on your API
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      text,
-      topK,
-      model,
-      metric,
-    }),
+  const res = await fetch("http://127.0.0.1:8000/api/query/text", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ queryText: text, topK, model, metric }),
   });
 
   if (!res.ok) {
@@ -27,17 +20,29 @@ export async function queryByText(
   return data;
 }
 
-export function queryByImage(image: File, topK: number, model: string, metric: string) {
-    // const formData = new FormData();
-    // formData.append("image", image);
-    // formData.append("topK", topK.toString());
-    // formData.append("model", model);
-    // formData.append("metric", metric);
+export async function queryByImage(
+  file: File,
+  topK: number,
+  model: string,
+  metric: string
+) {
+  const formData = new FormData();
+  formData.append("image", file);        // must match the backend param name
+  formData.append("topK", String(topK));
+  formData.append("model", model);
+  formData.append("metric", metric);
 
-    // return fetch(`/api/query/image`, {
-    //     method: "POST",
-    //     body: formData,
-    // });
+  const res = await fetch("http://127.0.0.1:8000/api/query/image", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+
+  // Response is { results: VideoItem[] }
+  return res.json();
 }
 
 export function queryByOCR(text: string, topK: number, model: string, metric: string) {

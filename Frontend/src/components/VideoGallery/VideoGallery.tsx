@@ -4,14 +4,9 @@ import "./VideoGallery.css"; // <-- grid/scroll-only CSS
 
 export default function VideoGallery() {
   // Own the list here; update from elsewhere if you like
-  const [videos, setVideos] = useState<VideoItem[]>(() =>
-    Array.from({ length: 500 }, (_, i) => ({
-      youtube_id: "dQw4w9WgXcQ",
-      start_time: 100,                 // e.g., 0s, 1s, 2s, ... 499s
-      preview_image_directory: "/TEST/hello.jpg",
-    }))
-  );
+  const [videos, setVideos] = useState<VideoItem[]>([]);
   // Optional external updates
+  console.log("TThe first video:", videos[0]);
   useEffect(() => {
     type SetEvt = CustomEvent<VideoItem[]>;
     type AddEvt = CustomEvent<VideoItem>;

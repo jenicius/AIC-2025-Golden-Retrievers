@@ -2,9 +2,11 @@ import { useEffect, useMemo, useRef, useState, memo } from "react";
 import "./VideoCard.css";
 
 export type VideoItem = {
+  id: string;
   youtube_id: string;
-  start_time: number;               // seconds
-  preview_image_directory: string;  // direct image path/URL (e.g., /previews/abc.jpg)
+  video_name: string;
+  frame_idx: number;
+  start_time: number;               
 };
 
 /* ---------- helpers ---------- */
@@ -55,20 +57,16 @@ const VideoCard = memo(function VideoCard({ item, className }: Props) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Approx “frame index” without FPS (just rounded seconds)
-  const frameIdx = useMemo(
-    () => Math.max(0, Math.round(item.start_time || 0)),
-    [item.start_time]
-  );
 
   // preview_image_directory is already the image path
   useEffect(() => {
-    setPreviewUrl(item.preview_image_directory || null);
-  }, [item.preview_image_directory]);
+    setPreviewUrl('public/TEST/hello.jpg');
+  }, []);
 
   const addToCsv = () => {
     window.dispatchEvent(
       new CustomEvent("csv:add", {
-        detail: { video_id: item.youtube_id, frame_idx: frameIdx },
+        detail: { video_id: item.video_name, frame_idx: item.frame_idx },
       })
     );
   };
@@ -77,7 +75,6 @@ const VideoCard = memo(function VideoCard({ item, className }: Props) {
   const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(
     item.youtube_id
   )}?start=${start}&autoplay=1&modestbranding=1&rel=0`;
-
   return (
     <div ref={ref} className={`vg-card${className ? ` ${className}` : ""}`}>
       {!inView ? (
@@ -115,7 +112,7 @@ const VideoCard = memo(function VideoCard({ item, className }: Props) {
           </div>
 
           <div className="vg-meta">
-            <h3 className="vg-title">{item.youtube_id}</h3>
+            <h3 className="vg-title">{item.video_name}</h3>
 
             <div className="vg-actions">
               {showVideo && (
@@ -133,7 +130,7 @@ const VideoCard = memo(function VideoCard({ item, className }: Props) {
             </div>
 
             <p className="vg-sub">
-              Start: {start}s · frame ≈ {frameIdx}
+              Start: {start}s · frame ≈ {item.frame_idx}
             </p>
           </div>
         </>
