@@ -10,8 +10,9 @@ import {
 } from "./components";
 import config from "../config/models.json";
 //import { Search } from "lucide-react";
-import { queryByImage, queryByText, queryByOCR, queryByFrameIdx, queryByFrameRow } from "../src/utils/fetchData";
-import { Search } from "lucide-react";
+import { queryByImage, queryByText, queryByOCR, queryByFrameIdx } from "../src/utils/fetchData";
+import { FaSearch } from "react-icons/fa"; // new import
+
 
 function App() {
   const [text, setText] = useState("");
@@ -141,7 +142,7 @@ function App() {
                   ); 
                 }}
               >
-                <Search size={18} strokeWidth={2.5} />
+                <FaSearch />
               </button>
             </div>
           </div>
