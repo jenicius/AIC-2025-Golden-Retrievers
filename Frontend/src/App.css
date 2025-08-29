@@ -92,6 +92,8 @@ body {
   display: flex;
   flex-direction: row;
   align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .form-group.row > * {
@@ -107,35 +109,6 @@ body {
 
 .text-large .text-input { min-height: 100px; }
 
-.input-wrapper {
-  position: relative;
-  width: 100%;
-}
-
-.input-wrapper .text-input {
-  width: 100%;
-  min-height: 44px;
-  padding-right: 40px; /* space so text doesn't overlap icon */
-}
-
-.icon-btn {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--deep);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.icon-btn:hover {
-  color: var(--honey);
-}
-
 .form-group.button-row {
   display: flex;
   gap: 12px;
@@ -147,6 +120,58 @@ body {
   text-align: center;
   padding: 10px 0;
   transition: background 0.2s, transform 0.1s;
+}
+
+/* ===== Input with Search Icon (non-invasive) ===== */
+.text-input-with-icon {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* reserve room for icon */
+.input-wrapper .text-input,
+.input-wrapper input,
+.input-wrapper textarea {
+  padding-right: 2.25rem; /* ~36px space for the icon */
+}
+
+.icon-btn-inside {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;   /* keep input background visible */
+  color: var(--brown);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.icon-btn-inside svg {
+  stroke: currentColor;
+  pointer-events: none;
+}
+
+.input-wrapper:focus-within .icon-btn-inside,
+.icon-btn-inside:hover {
+  color: var(--deep);
+}
+
+/* OPTIONAL: tiny circular hover background */
+.icon-btn-inside:hover {
+  background: rgba(212,169,77,0.15);
+  border-radius: 999px;
 }
 
 /* ----- Responsive ----- */

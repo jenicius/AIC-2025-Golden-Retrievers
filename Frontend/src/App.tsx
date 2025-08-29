@@ -1,9 +1,16 @@
 import { useState } from "react";
 import "./App.css";
-import { TextInput, DropDown, ImageDropper, Button, MakeCSV, VideoGallery } from "./components";
+import {
+  TextInput,
+  DropDown,
+  ImageDropper,
+  Button,
+  MakeCSV,
+  VideoGallery,
+} from "./components";
 import config from "../config/models.json";
 import { Search } from "lucide-react";
-import { queryByImage, queryByText, queryByOCR } from "../src/utils/fetchData"
+import { queryByImage, queryByText, queryByOCR, queryByFrameIdx, queryByFrameRow } from "../src/utils/fetchData";
 
 function App() {
   const [text, setText] = useState("");
@@ -12,6 +19,12 @@ function App() {
   const [metricOption, setMetricOption] = useState("");
   const [queryOption, setQueryOption] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [videoName, setVideoName] = useState("");
+  const [frameIdx, setFrameIdx] = useState("");
+  const [frameIdxRange, setFrameIdxRange] = useState("");
+  const [frameRow, setFrameRow] = useState("");
+  const [frameRowRange, setFrameRowRange] = useState("");
+
   // Models = keys of JSON
   const modelOptions = Object.keys(config);
 
@@ -22,33 +35,44 @@ function App() {
 
   // QueryBy = entries under selected model
   const queryOptions = modelOption
-    ? Object.entries(config[modelOption].queryBy) // [["text","Query by Embedding"],["image","Query by Image"]]
+    ? Object.entries(config[modelOption].queryBy)
     : [];
 
   const handleOnClickQuery = async (key: string) => {
-  setQueryOption(key);
+    setQueryOption(key);
 
-  try {
-    if (key === "ocr") {
-      const data = await queryByOCR(text, topK, modelOption, metricOption);
-      window.dispatchEvent(new CustomEvent("gallery:set", { detail: data.results }));
-    } else if (key === "text") {
-      const data = await queryByText(text, topK, modelOption, metricOption);
-      window.dispatchEvent(new CustomEvent("gallery:set", { detail: data.results }));
-    } else if (key === "image") {
-      if (imageFile) {
-        const data = await queryByImage(imageFile, topK, modelOption, metricOption);
-        window.dispatchEvent(new CustomEvent("gallery:set", { detail: data.results }));
+    try {
+      if (key === "ocr") {
+        const data = await queryByOCR(text, topK, modelOption, metricOption);
+        window.dispatchEvent(
+          new CustomEvent("gallery:set", { detail: data.results })
+        );
+      } else if (key === "text") {
+        const data = await queryByText(text, topK, modelOption, metricOption);
+        window.dispatchEvent(
+          new CustomEvent("gallery:set", { detail: data.results })
+        );
+      } else if (key === "image") {
+        if (imageFile) {
+          const data = await queryByImage(
+            imageFile,
+            topK,
+            modelOption,
+            metricOption
+          );
+          window.dispatchEvent(
+            new CustomEvent("gallery:set", { detail: data.results })
+          );
+        } else {
+          console.log("There is no image");
+        }
       } else {
-        console.log("There is no image");
+        console.log("There is no options else");
       }
-    } else {
-      console.log("There is no options else");
+    } catch (err) {
+      console.error("Query failed:", err);
     }
-  } catch (err) {
-    console.error("Query failed:", err);
-  }
-};
+  };
 
   return (
     <div className="app-shell">
@@ -70,32 +94,16 @@ function App() {
           />
         </div>
 
-        {/* TopK */}
-        <div className="form-group text-input-icon">
-          <label className="form-label">Video</label>
-          <div className="input-wrapper">
-            <TextInput
-              placeholder="Enter video title here..."
-              onChange={setText}
-            />
-            <button
-              type="button"
-              className="icon-btn"
-              onClick={() => console.log("Searching:", text)}
-            >
-              <Search size={18} strokeWidth={2} />
-            </button>
-          </div>
-        </div>
+        {/* Row: Video + Top K */}
         <div className="form-group row">
           <div className="text-input-small">
-              <label className="form-label">Frame index</label>
-              <TextInput
-                placeholder="Enter frame index here..."
-                onChange={setText}
-              />
-            </div>
-                    <div className="form-group text-input-small">
+            <label className="form-label">Video</label>
+            <TextInput
+              placeholder="Enter video title here..."
+              onChange={setVideoName}
+            />
+          </div>
+          <div className="text-input-small">
             <label className="form-label">Top K</label>
             <TextInput
               type="number"
@@ -107,22 +115,65 @@ function App() {
           </div>
         </div>
 
-        {/* Row: Frame ID + Frame ID Range */}
+        {/* Row: Frame index + Frame idx range with search inside */}
         <div className="form-group row">
-          
+          <div className="text-input-small">
+            <label className="form-label">Frame index</label>
+            <TextInput
+              placeholder="Enter frame index here..."
+              onChange={setFrameIdx}
+            />
+          </div>
+          <div className="text-input-with-icon">
+            <label className="form-label">IDX range</label>
+            <div className="input-wrapper">
+              <TextInput
+                placeholder="Enter frame index range here..."
+                onChange={setFrameIdxRange}
+              />
+              <button
+                className="icon-btn-inside"
+                onClick={async () => {
+                  const data = await queryByFrameIdx(videoName, Number(frameIdx), Number(frameIdxRange));
+                  window.dispatchEvent(
+                    new CustomEvent("gallery:set", { detail: data.results })
+                  ); 
+                }}
+              >
+                <Search size={18} strokeWidth={2.5} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Row: Keyframe ID + ID range with search inside */}
+        <div className="form-group row">
           <div className="text-input-small">
             <label className="form-label">Keyframe ID</label>
             <TextInput
-              placeholder="Enter frame index here..."
+              placeholder="Enter keyframe ID here..."
               onChange={setText}
             />
           </div>
-          <div className="text-input-small">
-            <label className="form-label">Frame ID Range</label>
-            <TextInput
-              placeholder="Enter frame index range here..."
-              onChange={setText}
-            />
+          <div className="text-input-with-icon">
+            <label className="form-label">ID range</label>
+            <div className="input-wrapper">
+              <TextInput
+                placeholder="Enter frame ID range here..."
+                onChange={setText}
+              />
+              <button
+                className="icon-btn-inside"
+                onClick={async () => {
+                  const data = await queryByFrameRow(videoName, Number(frameRow), Number(frameRowRange));
+                  window.dispatchEvent(
+                    new CustomEvent("gallery:set", { detail: data.results })
+                  );
+                }}
+              >
+                <Search size={18} strokeWidth={2.5} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -146,15 +197,13 @@ function App() {
               toggle
               defaultActive={queryOption === key}
               onClick={() => {
-                handleOnClickQuery(key)
-              }
-              }
+                handleOnClickQuery(key);
+              }}
             />
           ))}
         </div>
 
-        <ImageDropper 
-        onChange={setImageFile}/>
+        <ImageDropper onChange={setImageFile} />
       </div>
 
       {/* RIGHT PANEL */}
