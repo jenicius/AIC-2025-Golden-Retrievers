@@ -45,6 +45,23 @@ export async function queryByImage(
   return res.json();
 }
 
-export function queryByOCR(text: string, topK: number, model: string, metric: string) {
+export async function queryByOCR(
+  text: string,
+  topK: number,
+  model: string,
+  metric: string
+) {
+  const res = await fetch("http://127.0.0.1:8000/api/query/ocr", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ queryText: text, topK, model, metric }),
+  });
 
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  console.log(data);
+  return data;
 }
