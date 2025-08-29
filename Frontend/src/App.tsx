@@ -9,8 +9,9 @@ import {
   VideoGallery,
 } from "./components";
 import config from "../config/models.json";
-import { Search } from "lucide-react";
+//import { Search } from "lucide-react";
 import { queryByImage, queryByText, queryByOCR, queryByFrameIdx, queryByFrameRow } from "../src/utils/fetchData";
+import { Search } from "lucide-react";
 
 function App() {
   const [text, setText] = useState("");

@@ -24,10 +24,11 @@ class GoldenRetriever:
         ]
         
         self.current_model = None
-        self.load_model('ViT-L-14-quickgelu') 
+        self.load_model('ViT-H-14-quickgelu') 
         
         mapping_path = f'{settings.DATA_PATH}/file_name_mapping.json'
         self.id_to_video = json.load(open(mapping_path))
+        self.video_to_id = {(v[0], v[1]): k for k, v in self.id_to_video.items()}
         self.id_to_video = {int(k): v for k, v in self.id_to_video.items()}
         
         print("Initialization complete.")
@@ -86,7 +87,6 @@ class GoldenRetriever:
 
     def search_by_text(self, model: str, metric: str, topK: int, queryText: str) -> list[VideoItem]:
         self.load_model(model)
-
         text_tokens = self.tokenizer([queryText]).to(self.device)
         with torch.no_grad():
             text_features = self.model.encode_text(text_tokens).float().cpu().numpy()
@@ -115,6 +115,77 @@ class GoldenRetriever:
         # TODO: Implement OCR search logic
         print("OCR search is not yet implemented.")
         return []
+    
+    def search_by_frame_idx(self, video_name: str, frame_idx: int, range: int) -> list[VideoItem]:
+        video_csv_path = f'{settings.DATA_PATH}/map-keyframes-aic25-b1/map-keyframes/{video_name}.csv'
+        video_csv = pd.read_csv(video_csv_path)
+        
+        if frame_idx not in video_csv['frame_idx'].values:
+            raise ValueError(f"Frame index {frame_idx} not found in video {video_name}.")
+        
+        frame_row = video_csv[video_csv['frame_idx'] >= frame_idx]
+        target_n = frame_row['n'].values[0]
+        
+        lower_bound = max(0, target_n - range)
+        upper_bound = target_n + range
+        
+        relevant_rows = video_csv[(video_csv['n'] >= lower_bound) & (video_csv['n'] <= upper_bound)]
+        
+        results = []
+        for _, row in relevant_rows.iterrows():
+            n = row['n']
+            frame_idx = row['frame_idx']
+            pts_time = row['pts_time']
+            
+            video_json_path = f'{settings.DATA_PATH}/media-info-aic25-b1/media-info/{video_name}.json'
+            video_json = json.load(open(video_json_path, encoding='utf-8'))
+            youtube_id = video_json.get('watch_url', '').split('?v=')[-1]
+            
+            results.append(
+                VideoItem(
+                    id = self.video_to_id.get((video_name, n), -1),
+                    video_name = video_name,
+                    youtube_id = youtube_id,
+                    start_time = round(pts_time),
+                    frame_idx = frame_idx
+                )
+            )
+        
+        return results
+    
+    def search_by_frame_row(self, video_name: str, frame_row: int, range: int) -> list[VideoItem]:
+        video_csv_path = f'{settings.DATA_PATH}/map-keyframes-aic25-b1/map-keyframes/{video_name}.csv'
+        video_csv = pd.read_csv(video_csv_path)
+        
+        if frame_row not in video_csv['n'].values:
+            raise ValueError(f"Frame row {frame_row} not found in video {video_name}.")
+        
+        lower_bound = max(0, frame_row - range)
+        upper_bound = frame_row + range
+        
+        relevant_rows = video_csv[(video_csv['n'] >= lower_bound) & (video_csv['n'] <= upper_bound)]
+        
+        results = []
+        for _, row in relevant_rows.iterrows():
+            n = row['n']
+            frame_idx = row['frame_idx']
+            pts_time = row['pts_time']
+            
+            video_json_path = f'{settings.DATA_PATH}/media-info-aic25-b1/media-info/{video_name}.json'
+            video_json = json.load(open(video_json_path, encoding='utf-8'))
+            youtube_id = video_json.get('watch_url', '').split('?v=')[-1]
+            
+            results.append(
+                VideoItem(
+                    id = self.video_to_id.get((video_name, n), -1),
+                    video_name = video_name,
+                    youtube_id = youtube_id,
+                    start_time = round(pts_time),
+                    frame_idx = frame_idx
+                )
+            )
+        
+        return results
 
 
 golden_retriever = GoldenRetriever()
