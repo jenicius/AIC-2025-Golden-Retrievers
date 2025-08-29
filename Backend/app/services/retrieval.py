@@ -24,7 +24,7 @@ class GoldenRetriever:
         ]
         
         self.current_model = None
-        self.load_model('ViT-H-14-quickgelu') 
+        self.load_model('ViT-L-14') 
         
         mapping_path = f'{settings.DATA_PATH}/file_name_mapping.json'
         self.id_to_video = json.load(open(mapping_path))
