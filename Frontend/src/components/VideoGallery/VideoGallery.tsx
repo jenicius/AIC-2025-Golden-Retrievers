@@ -7,7 +7,7 @@ export default function VideoGallery() {
   const [videos, setVideos] = useState<VideoItem[]>(() =>
     Array.from({ length: 500 }, (_, i) => ({
       youtube_id: "dQw4w9WgXcQ",
-      start_time: i,                 // e.g., 0s, 1s, 2s, ... 499s
+      start_time: 100,                 // e.g., 0s, 1s, 2s, ... 499s
       preview_image_directory: "/TEST/hello.jpg",
     }))
   );

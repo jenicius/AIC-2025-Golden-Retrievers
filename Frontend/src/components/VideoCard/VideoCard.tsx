@@ -1,13 +1,4 @@
-import {
-  lazy,
-  Suspense,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  memo,
-} from "react";
-import "react-lite-youtube-embed/dist/LiteYouTubeEmbed.css";
+import { useEffect, useMemo, useRef, useState, memo } from "react";
 import "./VideoCard.css";
 
 export type VideoItem = {
@@ -15,8 +6,6 @@ export type VideoItem = {
   start_time: number;               // seconds
   preview_image_directory: string;  // direct image path/URL (e.g., /previews/abc.jpg)
 };
-
-const LiteYouTubeEmbed = lazy(() => import("react-lite-youtube-embed"));
 
 /* ---------- helpers ---------- */
 
@@ -60,14 +49,14 @@ type Props = {
   className?: string;
 };
 
-const VideoCard = memo(function VideoCard({ item }: Props) {
+const VideoCard = memo(function VideoCard({ item, className }: Props) {
   const { ref, inView } = useInView<HTMLDivElement>();
   const [showVideo, setShowVideo] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // With no FPS, use a simple integer-ish “frame index”
+  // Approx “frame index” without FPS (just rounded seconds)
   const frameIdx = useMemo(
-    () => Math.max(0, Math.round(item.start_time)),
+    () => Math.max(0, Math.round(item.start_time || 0)),
     [item.start_time]
   );
 
@@ -84,8 +73,13 @@ const VideoCard = memo(function VideoCard({ item }: Props) {
     );
   };
 
+  const start = Math.max(0, Math.floor(item.start_time || 0));
+  const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(
+    item.youtube_id
+  )}?start=${start}&autoplay=1&modestbranding=1&rel=0`;
+
   return (
-    <div ref={ref} className="vg-card">
+    <div ref={ref} className={`vg-card${className ? ` ${className}` : ""}`}>
       {!inView ? (
         <div className="vg-skel">
           <div className="vg-skel-media" />
@@ -99,19 +93,13 @@ const VideoCard = memo(function VideoCard({ item }: Props) {
           <div className="vg-media">
             {showVideo ? (
               <div className="vg-embed">
-                <Suspense
-                  fallback={
-                    <div className="vg-embed vg-loading" aria-label="Loading video…" />
-                  }
-                >
-                  <LiteYouTubeEmbed
-                    key={`yt-${item.youtube_id}-${frameIdx}`}
-                    id={item.youtube_id}
-                    title={`YouTube ${item.youtube_id}`}
-                    params={`start=${Math.floor(item.start_time)}&autoplay=1`}
-                    poster="hqdefault"
-                  />
-                </Suspense>
+                <iframe
+                  src={src}
+                  title={`YouTube ${item.youtube_id}`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
               </div>
             ) : previewUrl ? (
               <button
@@ -145,7 +133,7 @@ const VideoCard = memo(function VideoCard({ item }: Props) {
             </div>
 
             <p className="vg-sub">
-              Start: {Math.floor(item.start_time)}s · frame ≈ {frameIdx}
+              Start: {start}s · frame ≈ {frameIdx}
             </p>
           </div>
         </>
