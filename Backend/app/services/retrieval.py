@@ -153,5 +153,4 @@ class GoldenRetriever:
         
         return results
 
-
 golden_retriever = GoldenRetriever()
