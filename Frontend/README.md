@@ -22,7 +22,7 @@ npm install
 npm run build
 ```
 - Lưu ý là lúc tạo build sẽ hơi lâu, mọi người đợi tí
-
+- Ở những lần sau, khi code có cập nhật thì mọi người phải build lại 
 
 ## 4. Chạy
 ```bash
