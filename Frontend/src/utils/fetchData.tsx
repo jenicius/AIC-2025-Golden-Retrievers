@@ -1,12 +1,30 @@
 
-export function queryByText(text: string, topK: number, model: string, metric: string) {
-//   return fetch(`/api/query/text`, {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify({ text, topK, model, metric }),
-//   });
+export async function queryByText(
+  text: string,
+  topK: number,
+  model: string,
+  metric: string
+) {
+  const res = await fetch("http://127.0.0.1:8000/text", {
+    method: "POST",                     // or "GET" depending on your API
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      text,
+      topK,
+      model,
+      metric,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  console.log(data);
+  return data;
 }
 
 export function queryByImage(image: File, topK: number, model: string, metric: string) {
