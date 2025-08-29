@@ -3,6 +3,7 @@ import "./App.css";
 import { TextInput, DropDown, ImageDropper, Button, MakeCSV, VideoGallery } from "./components";
 import config from "../config/models.json";
 import { Search } from "lucide-react";
+import { queryByImage, queryByText, queryByOCR } from "../src/utils/fetchData"
 
 function App() {
   const [text, setText] = useState("");
@@ -10,7 +11,7 @@ function App() {
   const [modelOption, setModelOption] = useState("");
   const [metricOption, setMetricOption] = useState("");
   const [queryOption, setQueryOption] = useState("");
-
+  const [imageFile, setImageFile] = useState<File | null>(null);
   // Models = keys of JSON
   const modelOptions = Object.keys(config);
 
@@ -23,6 +24,31 @@ function App() {
   const queryOptions = modelOption
     ? Object.entries(config[modelOption].queryBy) // [["text","Query by Embedding"],["image","Query by Image"]]
     : [];
+
+  const handleOnClickQuery = (key: string) => {
+    setQueryOption(key)
+    if(key === "ocr") {
+      queryByOCR(text, topK, modelOption, metricOption);
+      console.log("query ocr")
+    }
+    else if(key === "text") {
+      queryByText(text, topK, modelOption, metricOption);
+    }
+    else if (key === "image") {
+      if(imageFile) {
+        console.log(imageFile)
+        queryByImage(imageFile, topK, modelOption, metricOption)
+      }
+      else {
+        console.log("There is no image")
+      }
+    }
+    else {
+      console.log("There is no options else")
+    }
+    // console.log(imageFile)
+    // console.log(queryOption)
+  }
 
   return (
     <div className="app-shell">
@@ -119,12 +145,16 @@ function App() {
               variant="primary"
               toggle
               defaultActive={queryOption === key}
-              onClick={() => setQueryOption(key)}
+              onClick={() => {
+                handleOnClickQuery(key)
+              }
+              }
             />
           ))}
         </div>
 
-        <ImageDropper />
+        <ImageDropper 
+        onChange={setImageFile}/>
       </div>
 
       {/* RIGHT PANEL */}

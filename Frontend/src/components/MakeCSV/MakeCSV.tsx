@@ -45,7 +45,6 @@ function MakeCSV() {
       const { video_id, frame_idx } = ce.detail || {};
       if (!video_id || typeof frame_idx !== "number" || !Number.isFinite(frame_idx)) return;
 
-      // 🔄 auto-fill the form inputs instead of adding an item
       setVideoId(video_id);
       setFrameIdx(frame_idx);
     };
@@ -95,7 +94,8 @@ function MakeCSV() {
 
             <DropDown
               options={["KIS", "QA", "TRAKE"]}
-              onChange={(option) => setQueryType(option)} value={""}
+              value={queryType}
+              onChange={(option) => setQueryType(option)} 
             />
 
             <Button
