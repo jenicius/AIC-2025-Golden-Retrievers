@@ -152,40 +152,6 @@ class GoldenRetriever:
             )
         
         return results
-    
-    def search_by_frame_row(self, video_name: str, frame_row: int, range: int) -> list[VideoItem]:
-        video_csv_path = f'{settings.DATA_PATH}/map-keyframes-aic25-b1/map-keyframes/{video_name}.csv'
-        video_csv = pd.read_csv(video_csv_path)
-        
-        if frame_row not in video_csv['n'].values:
-            raise ValueError(f"Frame row {frame_row} not found in video {video_name}.")
-        
-        lower_bound = max(0, frame_row - range)
-        upper_bound = frame_row + range
-        
-        relevant_rows = video_csv[(video_csv['n'] >= lower_bound) & (video_csv['n'] <= upper_bound)]
-        
-        results = []
-        for _, row in relevant_rows.iterrows():
-            n = row['n']
-            frame_idx = row['frame_idx']
-            pts_time = row['pts_time']
-            
-            video_json_path = f'{settings.DATA_PATH}/media-info-aic25-b1/media-info/{video_name}.json'
-            video_json = json.load(open(video_json_path, encoding='utf-8'))
-            youtube_id = video_json.get('watch_url', '').split('?v=')[-1]
-            
-            results.append(
-                VideoItem(
-                    id = self.video_to_id.get((video_name, n), -1),
-                    video_name = video_name,
-                    youtube_id = youtube_id,
-                    start_time = round(pts_time),
-                    frame_idx = frame_idx
-                )
-            )
-        
-        return results
 
 
 golden_retriever = GoldenRetriever()

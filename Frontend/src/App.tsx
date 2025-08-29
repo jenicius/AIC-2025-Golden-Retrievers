@@ -148,35 +148,6 @@ function App() {
         </div>
 
         {/* Row: Keyframe ID + ID range with search inside */}
-        <div className="form-group row">
-          <div className="text-input-small">
-            <label className="form-label">Keyframe ID</label>
-            <TextInput
-              placeholder="Enter keyframe ID here..."
-              onChange={setText}
-            />
-          </div>
-          <div className="text-input-with-icon">
-            <label className="form-label">ID range</label>
-            <div className="input-wrapper">
-              <TextInput
-                placeholder="Enter frame ID range here..."
-                onChange={setText}
-              />
-              <button
-                className="icon-btn-inside"
-                onClick={async () => {
-                  const data = await queryByFrameRow(videoName, Number(frameRow), Number(frameRowRange));
-                  window.dispatchEvent(
-                    new CustomEvent("gallery:set", { detail: data.results })
-                  );
-                }}
-              >
-                <Search size={18} strokeWidth={2.5} />
-              </button>
-            </div>
-          </div>
-        </div>
 
         {/* Query by Text */}
         <div className="form-group text-input-large">

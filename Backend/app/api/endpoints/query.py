@@ -42,14 +42,3 @@ async def query_by_frame_idx(
         video_name=video_name, frame_idx=frame_idx, range=range
     )
     return SearchResponse(results=results)
-
-@router.post("/frame-row", response_model=SearchResponse)
-async def query_by_frame_row(
-    video_name: str = Form(...),
-    frame_row: int = Form(...),
-    range: int = Form(...)
-):
-    results = golden_retriever.search_by_frame_row(
-        video_name=video_name, frame_row=frame_row, range=range
-    )
-    return SearchResponse(results=results)
