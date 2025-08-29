@@ -1,5 +1,38 @@
 {
-    "clip": {
+    "ViT-L-14": {
+        "metrics": {
+            "l1": "L1 metrics",
+            "l2": "L2 metrics",
+            "cosine": "Cosine similarity"
+        },
+        "queryBy": {
+            "text": "Text",
+            "image": "Image"
+        }
+    },
+    "ViT-L-14-quickgelu": {
+        "metrics": {
+            "l1": "L1 metrics",
+            "l2": "L2 metrics",
+            "cosine": "Cosine similarity"
+        },
+        "queryBy": {
+            "text": "Text",
+            "image": "Image"
+        }
+    },
+    "ViT-H-14-quickgelu": {
+        "metrics": {
+            "l1": "L1 metrics",
+            "l2": "L2 metrics",
+            "cosine": "Cosine similarity"
+        },
+        "queryBy": {
+            "text": "Text",
+            "image": "Image"
+        }
+    },
+    "PE-Core-L-14-336": {
         "metrics": {
             "l1": "L1 metrics",
             "l2": "L2 metrics",
