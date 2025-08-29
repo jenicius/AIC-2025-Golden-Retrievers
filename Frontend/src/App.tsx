@@ -9,8 +9,10 @@ import {
   VideoGallery,
 } from "./components";
 import config from "../config/models.json";
-import { Search } from "lucide-react";
-import { queryByImage, queryByText, queryByOCR, queryByFrameIdx, queryByFrameRow } from "../src/utils/fetchData";
+//import { Search } from "lucide-react";
+import { queryByImage, queryByText, queryByOCR, queryByFrameIdx } from "../src/utils/fetchData";
+import { FaSearch } from "react-icons/fa"; // new import
+
 
 function App() {
   const [text, setText] = useState("");
@@ -140,42 +142,13 @@ function App() {
                   ); 
                 }}
               >
-                <Search size={18} strokeWidth={2.5} />
+                <FaSearch />
               </button>
             </div>
           </div>
         </div>
 
         {/* Row: Keyframe ID + ID range with search inside */}
-        <div className="form-group row">
-          <div className="text-input-small">
-            <label className="form-label">Keyframe ID</label>
-            <TextInput
-              placeholder="Enter keyframe ID here..."
-              onChange={setText}
-            />
-          </div>
-          <div className="text-input-with-icon">
-            <label className="form-label">ID range</label>
-            <div className="input-wrapper">
-              <TextInput
-                placeholder="Enter frame ID range here..."
-                onChange={setText}
-              />
-              <button
-                className="icon-btn-inside"
-                onClick={async () => {
-                  const data = await queryByFrameRow(videoName, Number(frameRow), Number(frameRowRange));
-                  window.dispatchEvent(
-                    new CustomEvent("gallery:set", { detail: data.results })
-                  );
-                }}
-              >
-                <Search size={18} strokeWidth={2.5} />
-              </button>
-            </div>
-          </div>
-        </div>
 
         {/* Query by Text */}
         <div className="form-group text-input-large">

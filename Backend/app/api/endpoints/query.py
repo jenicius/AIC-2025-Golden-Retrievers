@@ -31,3 +31,14 @@ async def query_by_ocr(query: OcrQueryRequest):
         model=query.model, metric=query.metric, topK=query.topK, queryText=query.queryText
     )
     return SearchResponse(results=results)
+
+@router.post("/frame-idx", response_model=SearchResponse)
+async def query_by_frame_idx(
+    video_name: str = Form(...),
+    frame_idx: int = Form(...),
+    range: int = Form(...)
+):
+    results = golden_retriever.search_by_frame_idx(
+        video_name=video_name, frame_idx=frame_idx, range=range
+    )
+    return SearchResponse(results=results)

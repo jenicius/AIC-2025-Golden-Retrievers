@@ -1,5 +1,7 @@
 # backend/app/services/golden_retriever.py
 
+import gc
+import os
 import json
 import io
 import torch
@@ -9,6 +11,18 @@ from faiss import read_index
 from PIL import Image
 from app.core.config import settings
 from app.schemas.video import VideoItem
+import unicodedata
+
+#helper
+def strip_accents(text: str) -> str:
+    """
+    Convert Vietnamese (or any accented text) into plain ASCII.
+    E.g. 'Việt Nam' -> 'Viet Nam'
+    """
+    text = unicodedata.normalize('NFD', text)
+    text = ''.join(ch for ch in text if unicodedata.category(ch) != 'Mn')
+    return text
+
 
 class GoldenRetriever:
     def __init__(self):
@@ -24,10 +38,11 @@ class GoldenRetriever:
         ]
         
         self.current_model = None
-        self.load_model('ViT-L-14-quickgelu') 
+        self.load_model('ViT-L-14') 
         
         mapping_path = f'{settings.DATA_PATH}/file_name_mapping.json'
         self.id_to_video = json.load(open(mapping_path))
+        self.video_to_id = {(v[0], v[1]): k for k, v in self.id_to_video.items()}
         self.id_to_video = {int(k): v for k, v in self.id_to_video.items()}
         
         print("Initialization complete.")
@@ -40,6 +55,11 @@ class GoldenRetriever:
         if model_name not in [m[0] for m in self.available_models]:
             raise ValueError(f"Model {model_name} not available.")
         
+        if hasattr(self, "model") and self.model is not None:
+            del self.model
+            torch.cuda.empty_cache()   
+            gc.collect()              
+        
         pretrained = self.available_models[[m[0] for m in self.available_models].index(model_name)][1]
         
         self.model, _, self.preprocess = open_clip.create_model_and_transforms(
@@ -49,14 +69,14 @@ class GoldenRetriever:
         self.model.to(self.device).eval()
         self.tokenizer = open_clip.get_tokenizer(model_name)
         
-        index_path = f'{settings.DATA_PATH}/{model_name}_{pretrained}/faiss.index'
+        index_path = f'{settings.DATA_PATH}/Embeddings/{model_name}_{pretrained}/faiss.index'
         self.index = read_index(index_path)
         self.current_model = model_name
 
 
-    def _format_results(self, indices) -> list[VideoItem]:
+    def _format_results(self, ids) -> list[VideoItem]:
         results = []
-        for i in indices[0]:
+        for i in ids:
             try:
                 video_name, frame_n = self.id_to_video[i]
                 
@@ -86,14 +106,13 @@ class GoldenRetriever:
 
     def search_by_text(self, model: str, metric: str, topK: int, queryText: str) -> list[VideoItem]:
         self.load_model(model)
-
         text_tokens = self.tokenizer([queryText]).to(self.device)
         with torch.no_grad():
             text_features = self.model.encode_text(text_tokens).float().cpu().numpy()
 
-        distances, indices = self.index.search(text_features, topK)
-        
-        return self._format_results(indices)
+        distances, ids = self.index.search(text_features, topK)
+
+        return self._format_results(ids[0])
 
 
     def search_by_image(self, model: str, metric: str, topK: int, image_bytes: bytes) -> list[VideoItem]:
@@ -106,15 +125,62 @@ class GoldenRetriever:
         with torch.no_grad():
             image_features = self.model.encode_image(processed_image).float().numpy()
 
-        distances, indices = self.index.search(image_features, topK)
+        distances, ids = self.index.search(image_features, topK)
         
-        return self._format_results(indices)
+        return self._format_results(ids[0])
     
-    
-    def search_by_ocr(self, model: str, metric: str, topK: int, queryText: str) -> list[VideoItem]:
-        # TODO: Implement OCR search logic
-        print("OCR search is not yet implemented.")
-        return []
 
+    def search_by_ocr(self, model: str, metric: str, topK: int, queryText: str) -> list[VideoItem]:
+        ids = []
+        queryText_norm = strip_accents(queryText).lower()
+
+        for ocr in os.listdir(f'{settings.DATA_PATH}/OCR'):
+            with open(f'{settings.DATA_PATH}/OCR/{ocr}', 'r', encoding='utf-8') as f:
+                ocr_data = json.load(f)
+                for id, texts in ocr_data.items():
+                    normalized_texts = [strip_accents(t).lower() for t in texts]
+                    if queryText_norm in ' '.join(normalized_texts):
+                        ids.append(int(id))
+                        if len(ids) >= topK:
+                            break
+
+        return self._format_results(ids)
+    
+    def search_by_frame_idx(self, video_name: str, frame_idx: int, range: int) -> list[VideoItem]:
+        video_csv_path = f'{settings.DATA_PATH}/map-keyframes-aic25-b1/map-keyframes/{video_name}.csv'
+        video_csv = pd.read_csv(video_csv_path)
+        
+        if frame_idx not in video_csv['frame_idx'].values:
+            raise ValueError(f"Frame index {frame_idx} not found in video {video_name}.")
+        
+        frame_row = video_csv[video_csv['frame_idx'] >= frame_idx]
+        target_n = frame_row['n'].values[0]
+        
+        lower_bound = max(0, target_n - range)
+        upper_bound = target_n + range
+        
+        relevant_rows = video_csv[(video_csv['n'] >= lower_bound) & (video_csv['n'] <= upper_bound)]
+        
+        results = []
+        for _, row in relevant_rows.iterrows():
+            n = row['n']
+            frame_idx = row['frame_idx']
+            pts_time = row['pts_time']
+            
+            video_json_path = f'{settings.DATA_PATH}/media-info-aic25-b1/media-info/{video_name}.json'
+            video_json = json.load(open(video_json_path, encoding='utf-8'))
+            youtube_id = video_json.get('watch_url', '').split('?v=')[-1]
+            
+            results.append(
+                VideoItem(
+                    id = self.video_to_id.get((video_name, n), -1),
+                    video_name = video_name,
+                    youtube_id = youtube_id,
+                    start_time = round(pts_time),
+                    frame_idx = frame_idx
+                )
+            )
+        
+        return results
 
 golden_retriever = GoldenRetriever()

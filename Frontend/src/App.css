@@ -46,22 +46,18 @@ body {
   background: var(--cream);
   display: flex;
   flex-direction: column;
-  min-height: 0; /* critical for nested scrollers */
+  height: 100%; /* critical for nested scrollers */
 }
 
 /* ===== Right side vertical split ===== */
 .app-content {
-  width: 100%;
-  max-width: 1100px;
-  height: 100%;
-  margin: 0 auto;
-  padding: 12px;
+  flex: 1;         /* let it expand */
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-height: 0;
-  color: #333;
+  min-height: 0;   /* allow internal scrolls */
 }
+
 
 .app-header  { flex: 1 0 auto; display: flex; align-items: flex-end; justify-content: center; }
 .app-makecsv { flex: 3 0 auto; display: flex; align-items: flex-start; justify-content: center; }

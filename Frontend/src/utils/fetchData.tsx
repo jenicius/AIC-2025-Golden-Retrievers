@@ -71,37 +71,20 @@ export async function queryByFrameIdx(
   frame_idx: number,
   range: number 
 ) {
-  const res = await fetch("http://127.0.0.1:8000/api/query/frame_idx", {
+  const form = new FormData();
+  form.append("video_name", video_name);
+  form.append("frame_idx", frame_idx.toString());
+  form.append("range", range.toString());
+
+  const res = await fetch("http://127.0.0.1:8000/api/query/frame-idx", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ video_name, frame_idx, range }),
+    body: form,
   });
 
   if (!res.ok) {
     throw new Error(`Server error: ${res.status}`);
   }
+  console.log(res);
 
-  const data = await res.json();
-  console.log(data);
-  return data;
-}
-
-export async function queryByFrameRow(
-  video_name: string,
-  frame_row: number,
-  range: number
-) {
-  const res = await fetch("http://127.0.0.1:8000/api/query/frame_row", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ video_name, frame_row, range }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Server error: ${res.status}`);
-  }
-
-  const data = await res.json();
-  console.log(data);
-  return data;
+  return await res.json();
 }
