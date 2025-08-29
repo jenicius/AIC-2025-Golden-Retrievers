@@ -16,7 +16,8 @@ pip install -r requirements.txt
 
 5. Run 
 ```bash
-uvicorn main:app --reload
+cd Backend
+uvicorn app.main:app --reload
 ```
 
 6. Test

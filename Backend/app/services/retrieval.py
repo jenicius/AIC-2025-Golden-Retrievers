@@ -1,5 +1,7 @@
 # backend/app/services/golden_retriever.py
 
+import gc
+import os
 import json
 import io
 import torch
@@ -9,6 +11,18 @@ from faiss import read_index
 from PIL import Image
 from app.core.config import settings
 from app.schemas.video import VideoItem
+import unicodedata
+
+#helper
+def strip_accents(text: str) -> str:
+    """
+    Convert Vietnamese (or any accented text) into plain ASCII.
+    E.g. 'Việt Nam' -> 'Viet Nam'
+    """
+    text = unicodedata.normalize('NFD', text)
+    text = ''.join(ch for ch in text if unicodedata.category(ch) != 'Mn')
+    return text
+
 
 class GoldenRetriever:
     def __init__(self):
@@ -41,6 +55,11 @@ class GoldenRetriever:
         if model_name not in [m[0] for m in self.available_models]:
             raise ValueError(f"Model {model_name} not available.")
         
+        if hasattr(self, "model") and self.model is not None:
+            del self.model
+            torch.cuda.empty_cache()   
+            gc.collect()              
+        
         pretrained = self.available_models[[m[0] for m in self.available_models].index(model_name)][1]
         
         self.model, _, self.preprocess = open_clip.create_model_and_transforms(
@@ -50,14 +69,14 @@ class GoldenRetriever:
         self.model.to(self.device).eval()
         self.tokenizer = open_clip.get_tokenizer(model_name)
         
-        index_path = f'{settings.DATA_PATH}/{model_name}_{pretrained}/faiss.index'
+        index_path = f'{settings.DATA_PATH}/Embeddings/{model_name}_{pretrained}/faiss.index'
         self.index = read_index(index_path)
         self.current_model = model_name
 
 
-    def _format_results(self, indices) -> list[VideoItem]:
+    def _format_results(self, ids) -> list[VideoItem]:
         results = []
-        for i in indices[0]:
+        for i in ids:
             try:
                 video_name, frame_n = self.id_to_video[i]
                 
@@ -91,9 +110,9 @@ class GoldenRetriever:
         with torch.no_grad():
             text_features = self.model.encode_text(text_tokens).float().cpu().numpy()
 
-        distances, indices = self.index.search(text_features, topK)
-        
-        return self._format_results(indices)
+        distances, ids = self.index.search(text_features, topK)
+
+        return self._format_results(ids[0])
 
 
     def search_by_image(self, model: str, metric: str, topK: int, image_bytes: bytes) -> list[VideoItem]:
@@ -106,15 +125,26 @@ class GoldenRetriever:
         with torch.no_grad():
             image_features = self.model.encode_image(processed_image).float().numpy()
 
-        distances, indices = self.index.search(image_features, topK)
+        distances, ids = self.index.search(image_features, topK)
         
-        return self._format_results(indices)
+        return self._format_results(ids[0])
     
-    
+
     def search_by_ocr(self, model: str, metric: str, topK: int, queryText: str) -> list[VideoItem]:
-        # TODO: Implement OCR search logic
-        print("OCR search is not yet implemented.")
-        return []
+        ids = []
+        queryText_norm = strip_accents(queryText).lower()
+
+        for ocr in os.listdir(f'{settings.DATA_PATH}/OCR'):
+            with open(f'{settings.DATA_PATH}/OCR/{ocr}', 'r', encoding='utf-8') as f:
+                ocr_data = json.load(f)
+                for id, texts in ocr_data.items():
+                    normalized_texts = [strip_accents(t).lower() for t in texts]
+                    if queryText_norm in ' '.join(normalized_texts):
+                        ids.append(int(id))
+                        if len(ids) >= topK:
+                            break
+
+        return self._format_results(ids)
     
     def search_by_frame_idx(self, video_name: str, frame_idx: int, range: int) -> list[VideoItem]:
         video_csv_path = f'{settings.DATA_PATH}/map-keyframes-aic25-b1/map-keyframes/{video_name}.csv'
