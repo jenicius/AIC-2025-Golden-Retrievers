@@ -1,30 +1,20 @@
-import { type Item } from "../components/MakeCSV/MakeCSV";
+import { type Item } from "../components/MakeCSV/types";
 import fillCsvConfig from "../../config/fillCSV.json"; // <- read from file
 
-/** Helper: escape fields for CSV */
 function csvEscape(s: string): string {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-/**
- * Fill up to maxRow by adding items that keep the same video_id but advance
- * frame_idx in steps of `frameStep`. New rows are distributed across videos
- * in a round-robin way for evenness.
- * 
- * In QA mode, all synthetic rows inherit the same `answer` string from that video_id.
- */
 export function fillCSV(data: Item[], maxRow: number, frameStep: number): Item[] {
   const step = Math.max(1, Math.floor(frameStep || 1));
   if (!Array.isArray(data) || data.length === 0) return [];
 
-  // Shallow copy of the existing items (preserve order)
   const result: Item[] = data.map(d => ({ ...d }));
 
   if (result.length >= maxRow) {
     return result.slice(0, maxRow);
   }
 
-  // Group frames by video_id, track frames and next candidate
   type Group = { frames: Set<number>; next: number };
   const byVid = new Map<string, Group>();
   const answersByVid = new Map<string, string | undefined>(); // keep QA answers
@@ -83,44 +73,8 @@ export function fillCSV(data: Item[], maxRow: number, frameStep: number): Item[]
   return result;
 }
 
-/**
- * Fill then export as CSV.  In a browser we can't write to a real directory,
- * so we trigger a download.
- */
-export function exportToCSV(
-  data: Item[],
-  filename: string
-) {
-  const maxRow =
-    Number.isFinite((fillCsvConfig as any).maxRow) && (fillCsvConfig as any).maxRow > 0
-      ? Math.floor((fillCsvConfig as any).maxRow)
-      : data.length;
-
-  const frameStep =
-    Number.isFinite((fillCsvConfig as any).frameStep) && (fillCsvConfig as any).frameStep > 0
-      ? Math.floor((fillCsvConfig as any).frameStep)
-      : 1;
-
-  const filled = fillCSV(data, maxRow, frameStep);
-
-  // Decide if answer column is needed
-  const hasAnswer = filled.some(
-    (d: any) => typeof d.answer === "string" && d.answer.trim().length > 0
-  );
-
-  const header = hasAnswer ? "video_id,frame_idx,answer" : "video_id,frame_idx";
-
-  const lines = filled.map((it: any) => {
-    const cells = [csvEscape(it.video_id), String(it.frame_idx)];
-    if (hasAnswer) {
-      const ans = typeof it.answer === "string" ? it.answer : "";
-      cells.push(csvEscape(ans));
-    }
-    return cells.join(",");
-  });
-
-  const csv = "\uFEFF" + [header, ...lines].join("\n");
-
+function downloadCSV(lines: string[], filename: string) {
+  const csv = "\uFEFF" + lines.join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
 
@@ -135,4 +89,75 @@ export function exportToCSV(
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+}
+
+
+export function KIStoCSV(data: Item[], filename: string) {
+  const maxRow =
+    Number.isFinite((fillCsvConfig as any).maxRow) && (fillCsvConfig as any).maxRow > 0
+      ? Math.floor((fillCsvConfig as any).maxRow)
+      : data.length;
+
+  const frameStep =
+    Number.isFinite((fillCsvConfig as any).frameStep) && (fillCsvConfig as any).frameStep > 0
+      ? Math.floor((fillCsvConfig as any).frameStep)
+      : 1;
+
+  const filled = fillCSV(data, maxRow, frameStep);
+  
+  const lines = filled.map((it: any) => {
+    const cells = [csvEscape(it.video_id), String(it.frame_idx)];
+    return cells.join(",");
+  }); 
+  downloadCSV(lines, filename);
+}
+
+export function QAtoCSV(data: Item[], filename: string) {
+  const maxRow =
+    Number.isFinite((fillCsvConfig as any).maxRow) && (fillCsvConfig as any).maxRow > 0
+      ? Math.floor((fillCsvConfig as any).maxRow)
+      : data.length;
+
+  const frameStep =
+    Number.isFinite((fillCsvConfig as any).frameStep) && (fillCsvConfig as any).frameStep > 0
+      ? Math.floor((fillCsvConfig as any).frameStep)
+      : 1;
+
+  const filled = fillCSV(data, maxRow, frameStep);
+
+  const lines = filled.map((it: Item) => {
+    const cells = [csvEscape(it.video_id), String(it.frame_idx)];
+    const ans = typeof it.answer === "string" ? it.answer : "";
+    // force quotes around the escaped answer
+    cells.push(`"${ans.replace(/"/g, '""')}"`);
+    return cells.join(",");
+  });
+
+  downloadCSV(lines, filename);
+}
+
+
+export function TRAKEtoCSV(data: Item[], filename: string, num_events: number) {
+  const maxRow =
+    Number.isFinite((fillCsvConfig as any).maxRow) && (fillCsvConfig as any).maxRow > 0
+      ? Math.floor((fillCsvConfig as any).maxRow)
+      : data.length;
+  const frameStep =
+    Number.isFinite((fillCsvConfig as any).frameStep) && (fillCsvConfig as any).frameStep > 0
+      ? Math.floor((fillCsvConfig as any).frameStep)
+      : 1;
+  const filled = fillCSV(data, maxRow, frameStep);  
+
+  const lines = filled
+    .filter((it: any) => Array.isArray(it.frames) && it.frames.length === num_events)
+    .map((it: any) => {
+      return [it.video_id, ...it.frames.map(String)].join(",");
+    });
+
+  if (lines.length === 0) {
+    alert("No TRAKE rows with full capacity found.");
+    return;
+  }
+
+  downloadCSV(lines, filename);
 }
