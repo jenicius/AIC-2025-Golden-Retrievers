@@ -9,7 +9,6 @@ import {
   VideoGallery,
 } from "./components";
 import config from "../config/models.json";
-//import { Search } from "lucide-react";
 import { queryByImage, queryByText, queryByOCR, queryByFrameIdx } from "../src/utils/fetchData";
 import { FaSearch } from "react-icons/fa"; // new import
 
@@ -24,8 +23,6 @@ function App() {
   const [videoName, setVideoName] = useState("");
   const [frameIdx, setFrameIdx] = useState("");
   const [frameIdxRange, setFrameIdxRange] = useState("");
-  const [frameRow, setFrameRow] = useState("");
-  const [frameRowRange, setFrameRowRange] = useState("");
 
   // Models = keys of JSON
   const modelOptions = Object.keys(config);
@@ -183,7 +180,7 @@ function App() {
       <div className="app-right">
         <div className="app-content">
           <div className="app-header">
-            <h1 className="app-title">Golden Retrievers AI</h1>
+            <h1 className="app-title">Golden Retrievers</h1>
           </div>
 
           <div className="app-makecsv">
