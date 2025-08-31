@@ -28,13 +28,13 @@ function App() {
   const modelOptions = Object.keys(config);
 
   // Metrics = values under selected model
-  const metricOptions = modelOption
-    ? (Object.values(config[modelOption].metrics) as string[])
-    : [];
+  // const metricOptions = modelOption
+  //   ? (Object.values(config[modelOption].metrics) as string[])
+  //   : [];
 
   // QueryBy = entries under selected model
   const queryOptions = modelOption
-    ? Object.entries(config[modelOption].queryBy)
+    ? Object.entries(config[modelOption as keyof typeof config].queryBy)
     : [];
 
   const handleOnClickQuery = async (key: string) => {
@@ -85,12 +85,12 @@ function App() {
             value={modelOption}
             onChange={setModelOption}
           />
-          <DropDown
+          {/* <DropDown
             label="Metric"
             options={metricOptions}
             value={metricOption}
             onChange={setMetricOption}
-          />
+          /> */}
         </div>
 
         {/* Row: Video + Top K */}
@@ -107,9 +107,8 @@ function App() {
             <TextInput
               type="number"
               min={1}
-              value={topK}
               onChange={(value) => setTopK(Number(value))}
-              placeholder="Number"
+              placeholder={topK ? topK.toString() : "Number"}
             />
           </div>
         </div>
