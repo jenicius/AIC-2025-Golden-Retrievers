@@ -1,35 +1,19 @@
-import { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { useImageDropper } from "./useImageDropper";
 import "./ImageDropper.css";
 
 interface ImageDropperProps {
   label?: string;
-  enabled?: boolean; // NEW prop
+  enabled?: boolean;
   onChange?: (file: File | null) => void;
 }
 
-function ImageDropper({ label = "Query by Image", enabled = true, onChange }: ImageDropperProps) {
-  const [preview, setPreview] = useState<string | null>(null);
-
-  const onDrop = useCallback(
-    (acceptedFiles: File[]) => {
-      const file = acceptedFiles[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = () => setPreview(reader.result as string);
-        reader.readAsDataURL(file);
-        if (onChange) onChange(file);
-      }
-    },
-    [onChange]
-  );
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: { "image/*": [] },
-    multiple: false,
-    onDrop,
-    disabled: !enabled, // respect enabled flag
-  });
+function ImageDropper({
+  label = "Query by Image",
+  enabled = true,
+  onChange,
+}: ImageDropperProps) {
+  const { preview, getRootProps, getInputProps, isDragActive, clear } =
+    useImageDropper({ enabled, onChange });
 
   return (
     <div className="form-group">
@@ -41,12 +25,25 @@ function ImageDropper({ label = "Query by Image", enabled = true, onChange }: Im
         })}
       >
         <input {...getInputProps()} disabled={!enabled} />
+
         {preview ? (
-          <img src={preview} alt="Preview" className="preview" />
+          <div className="preview-wrapper">
+            <img src={preview} alt="Preview" className="preview" />
+            <button
+              type="button"
+              className="remove-btn"
+              onClick={(e) => {
+                e.stopPropagation(); 
+                clear();
+              }}
+            >
+              ✕
+            </button>
+          </div>
         ) : isDragActive ? (
           <p>Drop the image here...</p>
         ) : (
-          <p>{enabled ? "Drag & drop an image here, or click to select" : "Disabled"}</p>
+          <p>{enabled ? "Click, drag, or paste an image" : "Disabled"}</p>
         )}
       </div>
     </div>
