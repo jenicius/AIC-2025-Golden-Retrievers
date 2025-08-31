@@ -17,7 +17,21 @@ function ImageDropper({
 
   return (
     <div className="form-group">
-      {label && <label className="form-label">{label}</label>}
+      <div className="form-group-row">
+        {label && <label className="form-label">{label}</label>}
+        {preview && (
+          <button
+            type="button"
+            className="remove-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              clear();
+            }}
+          >
+            Remove
+          </button>
+        )}
+      </div>
 
       <div
         {...getRootProps({
@@ -29,16 +43,6 @@ function ImageDropper({
         {preview ? (
           <div className="preview-wrapper">
             <img src={preview} alt="Preview" className="preview" />
-            <button
-              type="button"
-              className="remove-btn"
-              onClick={(e) => {
-                e.stopPropagation(); 
-                clear();
-              }}
-            >
-              ✕
-            </button>
           </div>
         ) : isDragActive ? (
           <p>Drop the image here...</p>
