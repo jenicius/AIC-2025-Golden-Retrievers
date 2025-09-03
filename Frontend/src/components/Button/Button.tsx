@@ -1,6 +1,14 @@
 import { useState } from "react";
-import PropTypes from "prop-types";
-import "./Button.css"; // styles from your main CSS, or scoped if you prefer
+import "./Button.css"; 
+
+interface ButtonProps {
+  label: string;
+  variant?: "primary" | "secondary" | "danger" | "outline";
+  onClick?: () => void;
+  toggle?: boolean;
+  defaultActive?: boolean;
+  disabled?: boolean;
+}
 
 function Button({
   label,
@@ -9,42 +17,25 @@ function Button({
   toggle = false,
   defaultActive = false,
   disabled = false,
-}) {
+}: ButtonProps) {
   const [isActive, setIsActive] = useState(defaultActive);
 
   const handleClick = () => {
     if (toggle) {
-      setIsActive(!isActive);
+      setIsActive(prev => !prev);
     }
     if (onClick) {
       onClick();
     }
   };
 
-  // Build className dynamically
-  const classNames = [
-    "btn",
-    `btn-${variant}`,
-    toggle ? (isActive ? "active" : "inactive") : "",
-    disabled ? "disabled" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const className = `btn-${variant} ${isActive ? "active" : ""}`;
 
   return (
-    <button className={classNames} onClick={handleClick} disabled={disabled}>
+    <button className={className} onClick={handleClick} disabled={disabled}>
       {label}
     </button>
   );
 }
-
-Button.propTypes = {
-  label: PropTypes.string.isRequired,
-  variant: PropTypes.oneOf(["primary", "secondary", "danger", "outline"]),
-  onClick: PropTypes.func,
-  toggle: PropTypes.bool,
-  defaultActive: PropTypes.bool,
-  disabled: PropTypes.bool,
-};
 
 export default Button;
