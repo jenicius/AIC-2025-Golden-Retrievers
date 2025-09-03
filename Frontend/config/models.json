@@ -7,7 +7,8 @@
         },
         "queryBy": {
             "text": "Text",
-            "image": "Image"
+            "image": "Image", 
+            "textlist": "Text List"
         }
     },
     "ViT-L-14-quickgelu": {
@@ -18,7 +19,8 @@
         },
         "queryBy": {
             "text": "Text",
-            "image": "Image"
+            "image": "Image", 
+            "textlist": "Text List"
         }
     },
     "ViT-H-14-quickgelu": {
@@ -29,7 +31,8 @@
         },
         "queryBy": {
             "text": "Text",
-            "image": "Image"
+            "image": "Image", 
+            "textlist": "Text List"
         }
     },
     "PE-Core-L-14-336": {
@@ -40,7 +43,8 @@
         },
         "queryBy": {
             "text": "Text",
-            "image": "Image"
+            "image": "Image", 
+            "textlist": "Text List"
         }
     },
     "ocr": {

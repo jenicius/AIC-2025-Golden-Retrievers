@@ -6,7 +6,6 @@ export default function VideoGallery() {
   // Own the list here; update from elsewhere if you like
   const [videos, setVideos] = useState<VideoItem[]>([]);
   // Optional external updates
-  console.log("TThe first video:", videos[0]);
   useEffect(() => {
     type SetEvt = CustomEvent<VideoItem[]>;
     type AddEvt = CustomEvent<VideoItem>;

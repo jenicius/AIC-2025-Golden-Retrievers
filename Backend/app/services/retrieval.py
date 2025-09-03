@@ -111,7 +111,7 @@ class GoldenRetriever:
             text_features = self.model.encode_text(text_tokens).float().cpu().numpy()
 
         distances, ids = self.index.search(text_features, topK)
-
+        print(distances)
         return self._format_results(ids[0])
 
 
@@ -182,5 +182,43 @@ class GoldenRetriever:
             )
         
         return results
+    
+    def search_video_by_text(self, model: str, metric: str, topK: int, queryText: str) -> list[VideoItem]:
+        frames = self.search_by_text(model, metric, topK, queryText)
+        video = {}
 
+        for frame in frames:
+            if video.get(frame.video_name) is None:
+                video[frame.video_name] = frame
+            # elif frame.frame_idx < video[frame.video_name].frame_idx:
+            #     video[frame.video_name] = frame
+
+        print(f"Video Results: {len(video)} unique videos found.")
+        return list(video.values())
+    
+    def search_video_by_text_list(self, model: str, metric: str, topK: int, queryTextList: list[str]) -> list[VideoItem]:
+        total_index: dict[str, int] = {}
+        video: dict[str,VideoItem] = {}
+        
+        query_results = [self.search_video_by_text(model, metric, topK, queryText) for queryText in queryTextList]
+        video_name_lists = {frame.video_name for result in query_results for frame in result}
+        for video_name in video_name_lists:
+            frame_idx = 0
+            cnt = 0
+            sum = 0
+            first_result = None
+            for result in query_results:
+                for (i,frame) in enumerate(result):
+                    if frame.video_name == video_name and frame.frame_idx > frame_idx:
+                        frame_idx = frame.frame_idx
+                        cnt += 1
+                        sum += i
+                        if first_result is None:
+                            first_result = frame
+            if first_result is not None:
+                video[video_name] = first_result
+                total_index[video_name] = sum + topK * (len(query_results) - cnt)
+        sorted_videos = sorted(video.values(), key=lambda f: total_index[f.video_name])
+        return sorted_videos
+    
 golden_retriever = GoldenRetriever()
