@@ -17,7 +17,7 @@ import {
   queryVideoByTextList,
   convertTimeToFrameIdx
 } from "../src/utils/fetchData";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaRegArrowAltCircleRight } from "react-icons/fa";
 
 type ModelConfig = {
   metrics?: string[] | Record<string, string>;
@@ -111,9 +111,17 @@ function App() {
       console.warn("Provide video name and time.");
       return;
     }
-    // Convert videoTime "HH:MM:SS" or "MM:SS" or "SS" to total seconds
-    const data = await convertTimeToFrameIdx(videoName, videoTime);
-    setFrameIdx(data.frame_idx.toString());
+    try{
+      setLoading(true);
+      const data = await convertTimeToFrameIdx(videoName, videoTime);
+      setFrameIdx(data.frame_idx.toString());
+      console.log("Frame index", frameIdx);
+    } catch (err) {
+      console.error("TimeToFrameIdx query failed:", err);
+      alert("Failed to convert time to frame index. Please check the video name and time format.");
+    } finally {
+      setLoading(false);
+    }
   }, [videoName, videoTime]);
 
   return (
@@ -171,7 +179,8 @@ function App() {
                 aria-label="Convert time to frame index"
                 title="Convert"
               >
-                <FaSearch />
+                <FaRegArrowAltCircleRight />
+
           </button>
           </div>
           </div>
@@ -184,6 +193,7 @@ function App() {
             <TextInput
               placeholder="Enter frame index here..."
               onChange={setFrameIdx}
+              value={frameIdx}
             />
           </div>
           <div className="text-input-with-icon">
