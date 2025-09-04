@@ -46,7 +46,7 @@ class GoldenRetriever:
         self.id_to_video = {int(k): v for k, v in self.id_to_video.items()}
         
         print("Initialization complete.")
-
+        print(self.device)
 
     def load_model(self, model_name: str):
         if self.current_model == model_name:
@@ -123,7 +123,7 @@ class GoldenRetriever:
         
         processed_image = self.preprocess(image).unsqueeze(0).to(self.device)
         with torch.no_grad():
-            image_features = self.model.encode_image(processed_image).float().numpy()
+            image_features = self.model.encode_image(processed_image).cpu().float().numpy()
 
         distances, ids = self.index.search(image_features, topK)
         
