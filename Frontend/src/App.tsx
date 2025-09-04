@@ -14,7 +14,8 @@ import {
   queryByText,
   queryByOCR,
   queryByFrameIdx,
-  queryVideoByTextList
+  queryVideoByTextList,
+  convertTimeToFrameIdx
 } from "../src/utils/fetchData";
 import { FaSearch } from "react-icons/fa";
 
@@ -36,6 +37,7 @@ function App() {
   const [frameIdx, setFrameIdx] = useState<string>("");
   const [frameIdxRange, setFrameIdxRange] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [videoTime, setVideoTime] = useState<string>("");
 
   const modelOptions = useMemo(() => Object.keys(config ?? {}), []);
 
@@ -104,6 +106,16 @@ function App() {
     }
   }, [frameIdx, frameIdxRange, setGallery, videoName]);
 
+  const handleTimeToFrameIdx = useCallback(async () => {
+    if (!videoName || !videoTime) {
+      console.warn("Provide video name and time.");
+      return;
+    }
+    // Convert videoTime "HH:MM:SS" or "MM:SS" or "SS" to total seconds
+    const data = await convertTimeToFrameIdx(videoName, videoTime);
+    setFrameIdx(data.frame_idx.toString());
+  }, [videoName, videoTime]);
+
   return (
     <div className="app-shell">
       {/* LEFT PANEL */}
@@ -121,16 +133,6 @@ function App() {
               setQueryOption("");
             }}
           />
-        </div>
-
-        <div className="form-group row">
-          <div className="text-input-small">
-            <label className="form-label">Video</label>
-            <TextInput
-              placeholder="E.g., L29_V007"
-              onChange={setVideoName}
-            />
-          </div>
           <div className="text-input-small">
             <label className="form-label">Top K</label>
             <TextInput
@@ -142,6 +144,36 @@ function App() {
               }}
               placeholder="1"
             />
+          </div>
+        </div>
+
+        <div className="form-group row">
+          <div className="text-input-small">
+            <label className="form-label">Video</label>
+            <TextInput
+              placeholder="E.g., L29_V007"
+              onChange={setVideoName}
+            />
+          </div>
+          
+          <div className="text-input-with-icon">
+            <label className="form-label">Time</label>
+            <div className="input-wrapper">
+            <TextInput
+              type="string"
+              placeholder="HH:MM:SS or MM:SS or SS"
+              onChange={setVideoTime}
+            />
+            <button
+                className="icon-btn-inside"
+                onClick={handleTimeToFrameIdx}
+                disabled={loading}
+                aria-label="Convert time to frame index"
+                title="Convert"
+              >
+                <FaSearch />
+          </button>
+          </div>
           </div>
         </div>
 
