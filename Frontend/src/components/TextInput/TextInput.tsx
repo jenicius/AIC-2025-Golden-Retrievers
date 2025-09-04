@@ -10,6 +10,7 @@ interface TextInputProps {
   min?: number;
   max?: number;
   step?: number;
+  value?: string | number; 
 }
 
 function TextInput({
@@ -20,14 +21,12 @@ function TextInput({
   rows = 4,
   min,
   max,
-  step
+  step,
+  value
 }: TextInputProps) {
-  const [value, setValue] = useState("");
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setValue(e.target.value);
     if (onChange) onChange(e.target.value);
   };
 
