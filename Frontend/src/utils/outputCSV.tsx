@@ -5,74 +5,6 @@ function csvEscape(s: string): string {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-export function fillCSV(data: Item[], maxRow: number, frameStep: number): Item[] {
-  const step = Math.max(1, Math.floor(frameStep || 1));
-  if (!Array.isArray(data) || data.length === 0) return [];
-
-  const result: Item[] = data.map(d => ({ ...d }));
-
-  if (result.length >= maxRow) {
-    return result.slice(0, maxRow);
-  }
-
-  type Group = { frames: Set<number>; next: number };
-  const byVid = new Map<string, Group>();
-  const answersByVid = new Map<string, string | undefined>(); // keep QA answers
-  const order: string[] = [];
-
-  for (const it of data) {
-    let g = byVid.get(it.video_id);
-    if (!g) {
-      g = { frames: new Set<number>(), next: 0 };
-      byVid.set(it.video_id, g);
-      order.push(it.video_id);
-    }
-    g.frames.add(Number(it.frame_idx));
-
-    if (typeof it.answer === "string" && it.answer.trim().length > 0) {
-      answersByVid.set(it.video_id, it.answer);
-    }
-  }
-
-  // Initialize each group's next frame (max existing + step)
-  for (const vid of order) {
-    const g = byVid.get(vid)!;
-    const max = g.frames.size ? Math.max(...g.frames) : 0;
-    let candidate = max + step;
-    while (g.frames.has(candidate)) candidate += step;
-    g.next = candidate;
-  }
-
-  // Round-robin add until we reach maxRow
-  let remaining = maxRow - result.length;
-  if (order.length === 0) return result;
-
-  let i = 0;
-  while (remaining > 0) {
-    const vid = order[i % order.length];
-    const g = byVid.get(vid)!;
-
-    let frame = g.next;
-    while (g.frames.has(frame)) frame += step;
-
-    g.frames.add(frame);
-
-    result.push({
-      video_id: vid,
-      frame_idx: frame,
-      id: "",
-      answer: answersByVid.get(vid) // inherit answer if any
-    });
-
-    g.next = frame + step;
-
-    remaining--;
-    i++;
-  }
-
-  return result;
-}
-
 export function fillCSVforTRAKE(
   data: Item[],
   maxRow: number,
@@ -114,9 +46,31 @@ export function fillCSVforTRAKE(
   return result;
 }
 
+export function fillCSVforQAandKIS(
+  data: Item[],
+  maxRow: number,
+  frameStep: number
+): Item[] {
+  const sz = data.length;
+  if (sz === 0) return [];
 
+  const result: Item[] = data.map(d => ({ ...d }));
 
+  for (let i = 0; i < maxRow - sz; i++) {
+    const it = data[i % sz];
+    const direction = Math.floor(i / sz) % 2 === 0 ? 1 : -1;
+    const step = Math.floor(i /(2 * sz) + 1) * frameStep;
 
+    const newEntry: Item = {
+      ...it,
+      id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      frame_idx: it.frame_idx + direction * step,
+    };
+
+    result.push(newEntry);
+  }
+  return result;
+}
 
 function downloadCSV(lines: string[], filename: string) {
   const csv = "\uFEFF" + lines.join("\n");
@@ -148,7 +102,7 @@ export function KIStoCSV(data: Item[], filename: string) {
       ? Math.floor((fillCsvConfig as any).frameStep)
       : 1;
 
-  const filled = fillCSV(data, maxRow, frameStep);
+  const filled = fillCSVforQAandKIS(data, maxRow, frameStep);
   
   const lines = filled.map((it: any) => {
     const cells = [csvEscape(it.video_id), String(it.frame_idx)];
@@ -168,12 +122,11 @@ export function QAtoCSV(data: Item[], filename: string) {
       ? Math.floor((fillCsvConfig as any).frameStep)
       : 1;
 
-  const filled = fillCSV(data, maxRow, frameStep);
+  const filled = fillCSVforQAandKIS(data, maxRow, frameStep);
 
   const lines = filled.map((it: Item) => {
     const cells = [csvEscape(it.video_id), String(it.frame_idx)];
     const ans = typeof it.answer === "string" ? it.answer : "";
-    // force quotes around the escaped answer
     cells.push(`"${ans.replace(/"/g, '""')}"`);
     return cells.join(",");
   });
