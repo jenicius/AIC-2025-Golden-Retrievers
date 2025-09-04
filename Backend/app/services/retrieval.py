@@ -222,7 +222,7 @@ class GoldenRetriever:
         sorted_videos = sorted(video.values(), key=lambda f: total_index[f.video_name])
         return sorted_videos
     
-    def convert_time_to_frame_idx(self, video_name: str, time: int) -> int:
+    def convert_time_to_frame_idx(self, video_name: str, time: float) -> int:
         video_csv_path = f'{settings.DATA_PATH}/map-keyframes-aic25-b1/map-keyframes/{video_name}.csv'
         video_csv = pd.read_csv(video_csv_path)
         
