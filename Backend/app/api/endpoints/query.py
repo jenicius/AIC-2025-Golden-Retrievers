@@ -56,7 +56,7 @@ async def query_by_text_list(
 @router.post("/time-to-frame-idx")
 async def convert_time_to_frame_idx(
     video_name: str = Form(...),
-    time: int = Form(...)
+    time: float = Form(...)
 ):
     result = golden_retriever.convert_time_to_frame_idx(
         video_name=video_name, time=time
