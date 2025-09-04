@@ -113,3 +113,39 @@ export async function queryVideoByTextList(
   console.log(data);
   return data;
 }
+
+export async function convertTimeToFrameIdx(
+  video_name: string,
+  time: string
+) {
+  // The format of time is "HH:MM:SS" or "MM:SS" or "SS"
+  // Convert to total seconds
+  const parts = time.split(":").map((p) => parseFloat(p));
+  let totalSeconds = 0;
+  if (parts.length === 3) {
+    totalSeconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+  }
+  else if (parts.length === 2) {
+    totalSeconds = parts[0] * 60 + parts[1];
+  }
+  else if (parts.length === 1) {
+    totalSeconds = parts[0];
+  }
+  else {
+    throw new Error("Invalid time format");
+  }
+
+  const form = new FormData();
+  form.append("video_name", video_name);
+  form.append("time", totalSeconds.toString());
+  const res = await fetch("http://127.0.0.1:8000/api/query/time-to-frame-idx", {
+    method: "POST",
+    body: form,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+
+  return await res.json();
+}
