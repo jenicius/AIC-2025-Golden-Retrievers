@@ -125,12 +125,12 @@ const VideoCard = memo(function VideoCard({ item, className }: Props) {
                 </button>
               )}
               <button type="button" className="vg-btn" onClick={addToCsv}>
-                Add to CSV
+                To CSV
               </button>
             </div>
 
             <p className="vg-sub">
-              Start: {start}s · frame ≈ {item.frame_idx}
+              frame ≈ {item.frame_idx}
             </p>
           </div>
         </>

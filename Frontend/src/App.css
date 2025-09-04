@@ -42,7 +42,7 @@ body {
 }
 
 .app-right {
-  flex: 3;
+  flex: 4;
   background: var(--cream);
   display: flex;
   flex-direction: column;
