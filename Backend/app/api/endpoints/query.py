@@ -8,7 +8,7 @@ router = APIRouter()
 
 @router.post("/text", response_model=SearchResponse)
 async def query_by_text(query: TextQueryRequest):
-    results = golden_retriever.search_video_by_text(
+    results = golden_retriever.search_by_text(
         model=query.model, metric=query.metric, topK=query.topK, queryText=query.queryText
     )
     return SearchResponse(results=results)
