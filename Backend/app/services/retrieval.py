@@ -111,7 +111,7 @@ class GoldenRetriever:
             text_features = self.model.encode_text(text_tokens).float().cpu().numpy()
 
         distances, ids = self.index.search(text_features, topK)
-        print(distances)
+
         return self._format_results(ids[0])
 
 
@@ -149,11 +149,13 @@ class GoldenRetriever:
     def search_by_frame_idx(self, video_name: str, frame_idx: int, range: int) -> list[VideoItem]:
         video_csv_path = f'{settings.DATA_PATH}/map-keyframes-aic25-b1/map-keyframes/{video_name}.csv'
         video_csv = pd.read_csv(video_csv_path)
-        
-        if frame_idx not in video_csv['frame_idx'].values:
-            raise ValueError(f"Frame index {frame_idx} not found in video {video_name}.")
+
+        if video_csv.empty:
+            raise ValueError(f"No data found for video {video_name}.")
         
         frame_row = video_csv[video_csv['frame_idx'] >= frame_idx]
+        if frame_row.empty:
+            raise ValueError(f"No frame found at or after index {frame_idx} in video {video_name}.")
         target_n = frame_row['n'].values[0]
         
         lower_bound = max(0, target_n - range)
@@ -193,7 +195,6 @@ class GoldenRetriever:
             # elif frame.frame_idx < video[frame.video_name].frame_idx:
             #     video[frame.video_name] = frame
 
-        print(f"Video Results: {len(video)} unique videos found.")
         return list(video.values())
     
     def search_video_by_text_list(self, model: str, metric: str, topK: int, queryTextList: list[str]) -> list[VideoItem]:
@@ -220,5 +221,15 @@ class GoldenRetriever:
                 total_index[video_name] = sum + topK * (len(query_results) - cnt)
         sorted_videos = sorted(video.values(), key=lambda f: total_index[f.video_name])
         return sorted_videos
+    
+    def convert_time_to_frame_idx(self, video_name: str, time: int) -> int:
+        video_csv_path = f'{settings.DATA_PATH}/map-keyframes-aic25-b1/map-keyframes/{video_name}.csv'
+        video_csv = pd.read_csv(video_csv_path)
+        
+        if video_csv.empty:
+            raise ValueError(f"No data found for video {video_name}.")
+
+        fps = video_csv['fps'].values[0]
+        return int(time * fps) 
     
 golden_retriever = GoldenRetriever()

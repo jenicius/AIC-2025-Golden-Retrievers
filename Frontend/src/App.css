@@ -140,8 +140,7 @@ body {
 .icon-btn-inside {
   position: absolute;
   right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 25%;
   width: 28px;
   height: 28px;
   border: 0;
