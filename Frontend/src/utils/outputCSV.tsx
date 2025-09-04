@@ -11,36 +11,26 @@ export function fillCSVforTRAKE(
   frameStep: number,
   num_events: number
 ): Item[] {
-  if (!Array.isArray(data) || data.length === 0) return [];
+  const sz = data.length;
+  if (sz === 0) return [];
 
-  let result = data.filter(
-    it => Array.isArray(it.frames) && it.frames.length === num_events
-  );
+  const result: Item[] = data.map(d => ({ ...d }));
 
-  if (result.length >= maxRow) {
-    return result.slice(0, maxRow);
-  }
+  for (let i = 0; i < maxRow - sz; i++) {
+    const it = data[i % sz];
+    const direction = Math.floor(i / sz) % 2 === 0 ? 1 : -1;
+    const step = Math.floor(i /(2 * sz) + 1) * frameStep;
 
-  let remainingRows = maxRow - result.length;
-  let cnt = 1;
+    const newFrames = (it.frames ?? []).map((f,_) => 
+      Math.max(0, f + direction * step)
+    );
 
-  while (remainingRows > 0) {
-    for (const it of result) {
-      if (remainingRows <= 0) break;
-
-      const newEntry: Item = {
-        ...it,
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        frame_idx: it.frame_idx,
-        frames: Array.isArray(it.frames)
-          ? it.frames.map(f => f + cnt * frameStep)
-          : [],
-      };
-
-      result.push(newEntry);
-      remainingRows--;
-    }
-    cnt++;
+    result.push({
+      ...it,
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      frame_idx: Math.max(0, it.frame_idx + direction * step),
+      frames: newFrames,
+    });
   }
 
   return result;
@@ -64,7 +54,7 @@ export function fillCSVforQAandKIS(
     const newEntry: Item = {
       ...it,
       id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      frame_idx: it.frame_idx + direction * step,
+      frame_idx: Math.max(0, it.frame_idx + direction * step),
     };
 
     result.push(newEntry);
