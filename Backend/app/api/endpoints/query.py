@@ -1,5 +1,6 @@
+from pyexpat import model
 from fastapi import APIRouter, Form, File, UploadFile
-from app.schemas.query import TextQueryRequest, OcrQueryRequest
+from app.schemas.query import TextListQueryRequest, TextQueryRequest, OcrQueryRequest
 from app.schemas.video import SearchResponse
 from app.services.retrieval import golden_retriever
 
@@ -7,7 +8,7 @@ router = APIRouter()
 
 @router.post("/text", response_model=SearchResponse)
 async def query_by_text(query: TextQueryRequest):
-    results = golden_retriever.search_by_text(
+    results = golden_retriever.search_video_by_text(
         model=query.model, metric=query.metric, topK=query.topK, queryText=query.queryText
     )
     return SearchResponse(results=results)
@@ -40,5 +41,14 @@ async def query_by_frame_idx(
 ):
     results = golden_retriever.search_by_frame_idx(
         video_name=video_name, frame_idx=frame_idx, range=range
+    )
+    return SearchResponse(results=results)
+
+@router.post("/text-list-video", response_model=SearchResponse)
+async def query_by_text_list(
+    query: TextListQueryRequest
+):
+    results = golden_retriever.search_video_by_text_list(
+        model=query.model, metric=query.metric, topK=query.topK, queryTextList=query.queryTextList
     )
     return SearchResponse(results=results)

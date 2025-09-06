@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import "./App.css";
 import {
   TextInput,
@@ -8,73 +8,126 @@ import {
   MakeCSV,
   VideoGallery,
 } from "./components";
-import config from "../config/models.json";
-//import { Search } from "lucide-react";
-import { queryByImage, queryByText, queryByOCR, queryByFrameIdx } from "../src/utils/fetchData";
-import { FaSearch } from "react-icons/fa"; // new import
+import rawConfig from "../config/models.json";
+import {
+  queryByImage,
+  queryByText,
+  queryByOCR,
+  queryByFrameIdx,
+  queryVideoByTextList
+} from "../src/utils/fetchData";
+import { FaSearch } from "react-icons/fa";
 
+/**
+ * Types that flex to whatever your JSON looks like.
+ * metrics can be an array or an object map; queryBy is a { key: label } map.
+ */
+type ModelConfig = {
+  metrics?: string[] | Record<string, string>;
+  queryBy: Record<string, string>;
+};
+
+const config = rawConfig as Record<string, ModelConfig>;
 
 function App() {
   const [text, setText] = useState("");
-  const [topK, setTopK] = useState(1);
+  const [topK, setTopK] = useState<number>(1);
   const [modelOption, setModelOption] = useState("");
   const [metricOption, setMetricOption] = useState("");
   const [queryOption, setQueryOption] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [videoName, setVideoName] = useState("");
-  const [frameIdx, setFrameIdx] = useState("");
-  const [frameIdxRange, setFrameIdxRange] = useState("");
-  const [frameRow, setFrameRow] = useState("");
-  const [frameRowRange, setFrameRowRange] = useState("");
+  const [frameIdx, setFrameIdx] = useState<string>("");
+  const [frameIdxRange, setFrameIdxRange] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [hasVideo, setHasVideo] = useState(false);
 
   // Models = keys of JSON
-  const modelOptions = Object.keys(config);
+  const modelOptions = useMemo(() => Object.keys(config ?? {}), []);
 
-  // Metrics = values under selected model
-  const metricOptions = modelOption
-    ? (Object.values(config[modelOption].metrics) as string[])
-    : [];
+  // Metrics derived from selected model (supports array or object forms)
+  const metricOptions = useMemo(() => {
+    if (!modelOption) return [] as string[];
+    const m = config[modelOption]?.metrics;
+    if (!m) return [] as string[];
+    return Array.isArray(m) ? m : Object.values(m);
+  }, [modelOption]);
 
   // QueryBy = entries under selected model
-  const queryOptions = modelOption
-    ? Object.entries(config[modelOption].queryBy)
-    : [];
+  const queryOptions = useMemo(() => {
+    return modelOption ? Object.entries(config[modelOption]?.queryBy ?? {}) : [];
+  }, [modelOption]);
 
-  const handleOnClickQuery = async (key: string) => {
-    setQueryOption(key);
+  const setGallery = useCallback((results: unknown) => {
+    window.dispatchEvent(new CustomEvent("gallery:set", { detail: results }));
+  }, []);
 
-    try {
-      if (key === "ocr") {
-        const data = await queryByOCR(text, topK, modelOption, metricOption);
-        window.dispatchEvent(
-          new CustomEvent("gallery:set", { detail: data.results })
-        );
-      } else if (key === "text") {
-        const data = await queryByText(text, topK, modelOption, metricOption);
-        window.dispatchEvent(
-          new CustomEvent("gallery:set", { detail: data.results })
-        );
-      } else if (key === "image") {
-        if (imageFile) {
+  const handleOnClickQuery = useCallback(
+    async (key: string) => {
+      setQueryOption(key);
+
+      if (!modelOption) {
+        console.warn("Select a model first.");
+        return;
+      }
+
+      try {
+        setLoading(true);
+        if (key === "ocr") {
+          const data = await queryByOCR(text, topK, modelOption, metricOption);
+          setGallery(data.results);
+          setHasVideo(true);
+        } else if (key === "text") {
+          const data = await queryByText(text, topK, modelOption, metricOption);
+          setGallery(data.results);
+          setHasVideo(true);
+        } else if (key === "textlist") {
+          const data = await queryVideoByTextList(text, topK, modelOption, metricOption);
+          setGallery(data.results);
+          setHasVideo(true);
+        } else if (key === "image") {
+          if (!imageFile) {
+            console.warn("No image selected for image query.");
+            return;
+          }
           const data = await queryByImage(
             imageFile,
             topK,
             modelOption,
             metricOption
           );
-          window.dispatchEvent(
-            new CustomEvent("gallery:set", { detail: data.results })
-          );
+          setGallery(data.results);
+          setHasVideo(true);
         } else {
-          console.log("There is no image");
+          console.warn("Unknown query option:", key);
         }
-      } else {
-        console.log("There is no options else");
+      } catch (err) {
+        console.error("Query failed:", err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Query failed:", err);
+    },
+    [imageFile, metricOption, modelOption, setGallery, text, topK]
+  );
+
+  const handleFrameSearch = useCallback(async () => {
+    const idx = Number(frameIdx);
+    const range = Number(frameIdxRange);
+    if (!videoName || Number.isNaN(idx) || Number.isNaN(range)) {
+      console.warn("Provide video name, frame index, and a numeric range.");
+      return;
     }
-  };
+    try {
+      setLoading(true);
+      const data = await queryByFrameIdx(videoName, idx, range);
+      setGallery(data.results);
+      setHasVideo(true);
+    } catch (err) {
+      console.error("FrameIdx query failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [frameIdx, frameIdxRange, setGallery, videoName]);
 
   return (
     <div className="app-shell">
@@ -86,13 +139,12 @@ function App() {
             label="Model"
             options={modelOptions}
             value={modelOption}
-            onChange={setModelOption}
-          />
-          <DropDown
-            label="Metric"
-            options={metricOptions}
-            value={metricOption}
-            onChange={setMetricOption}
+            onChange={(v: string) => {
+              setModelOption(v);
+              // reset dependent selections on model change
+              setMetricOption("");
+              setQueryOption("");
+            }}
           />
         </div>
 
@@ -110,8 +162,10 @@ function App() {
             <TextInput
               type="number"
               min={1}
-              value={topK}
-              onChange={(value) => setTopK(Number(value))}
+              onChange={(value) => {
+                const n = Math.max(1, Number(value) || 1);
+                setTopK(n);
+              }}
               placeholder="Number"
             />
           </div>
@@ -135,20 +189,16 @@ function App() {
               />
               <button
                 className="icon-btn-inside"
-                onClick={async () => {
-                  const data = await queryByFrameIdx(videoName, Number(frameIdx), Number(frameIdxRange));
-                  window.dispatchEvent(
-                    new CustomEvent("gallery:set", { detail: data.results })
-                  ); 
-                }}
+                onClick={handleFrameSearch}
+                disabled={loading}
+                aria-label="Search frame index range"
+                title="Search"
               >
                 <FaSearch />
               </button>
             </div>
           </div>
         </div>
-
-        {/* Row: Keyframe ID + ID range with search inside */}
 
         {/* Query by Text */}
         <div className="form-group text-input-large">
@@ -165,13 +215,12 @@ function App() {
           {queryOptions.map(([key, label]) => (
             <Button
               key={key}
-              label={label}
+              label={loading && queryOption === key ? "Loading..." : label}
               variant="primary"
               toggle
               defaultActive={queryOption === key}
-              onClick={() => {
-                handleOnClickQuery(key);
-              }}
+              disabled={loading || !modelOption}
+              onClick={() => handleOnClickQuery(key)}
             />
           ))}
         </div>
@@ -183,7 +232,7 @@ function App() {
       <div className="app-right">
         <div className="app-content">
           <div className="app-header">
-            <h1 className="app-title">Golden Retrievers AI</h1>
+            <h1 className="app-title">Golden Retrievers</h1>
           </div>
 
           <div className="app-makecsv">
@@ -192,6 +241,8 @@ function App() {
 
           <div className="app-display">
             <VideoGallery />
+            {/* If you want to react to hasVideo, use it to conditionally render or show empty state */}
+            {/* {!hasVideo && <div className="empty">No results yet. Try a query.</div>} */}
           </div>
         </div>
       </div>

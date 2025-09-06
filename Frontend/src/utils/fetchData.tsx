@@ -88,3 +88,28 @@ export async function queryByFrameIdx(
 
   return await res.json();
 }
+
+export async function queryVideoByTextList(
+  text: string,
+  topK: number,
+  model: string,
+  metric: string
+) {
+  // seperate text by \n into string list
+  const text_list = text.split("\n").map((t) => t.trim()).filter(Boolean);
+  console.log("Text list:", text_list);
+
+  const res = await fetch("http://127.0.0.1:8000/api/query/text-list-video", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ queryTextList: text_list, topK, model, metric }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  console.log(data);
+  return data;
+}

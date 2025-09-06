@@ -1,28 +1,111 @@
+.form-group {
+  margin-bottom: 1%;
+}
+
+.form-group-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
 .image-dropper {
   border: 2px dashed #d4a373;
-  border-radius: 12px;
-  padding: 24px;
+  border-radius: 16px;
+  padding: 28px;
   text-align: center;
-  background: #fff8e7;
-  color: #8c5e2c;
+  background: #FFF8E7;
+  color: #7a4e1d;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: background 0.25s ease, border-color 0.25s ease, transform 0.15s ease;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .image-dropper:hover {
-  background: #f5e6c8;
-  border-color: #8c5e2c;
+  background: #f8edd9;
+  border-color: #7a4e1d;
+  transform: translateY(-2px);
+}
+
+.image-dropper:active {
+  transform: translateY(0);
+  border-color: #5c3710;
 }
 
 .image-dropper.disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   pointer-events: none;
   cursor: not-allowed;
 }
 
 .preview {
   max-width: 100%;
-  max-height: 250px;
+  max-height: 260px;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  object-fit: contain;
+}
+
+.preview-wrapper {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.remove-btn {
+  background: #d9534f;
+  color: white;
+  border: none;
   border-radius: 8px;
-  margin-top: 12px;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: background 0.2s ease, transform 0.15s ease;
+  padding: 6px 14px;
+  font-size: 0.9rem;
+}
+
+.remove-btn:hover {
+  background: #c9302c;
+  transform: translateY(-2px);
+}
+
+.remove-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .image-dropper {
+    padding: 20px;
+    font-size: 0.9rem;
+  }
+
+  .preview {
+    max-height: 200px;
+  }
+
+  .remove-btn {
+    font-size: 0.8rem;
+    padding: 4px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .image-dropper {
+    padding: 16px;
+    font-size: 0.85rem;
+  }
+
+  .preview {
+    max-height: 160px;
+    border-radius: 8px;
+  }
+
+  .remove-btn {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+  }
 }
