@@ -1,5 +1,3 @@
-# backend/app/services/golden_retriever.py
-
 import gc
 import os
 import json
