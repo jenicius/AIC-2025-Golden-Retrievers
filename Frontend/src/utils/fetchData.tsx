@@ -74,7 +74,7 @@ export async function queryByFrameIdx(
   const form = new FormData();
   form.append("video_name", video_name);
   form.append("frame_idx", frame_idx.toString());
-  form.append("range", range.toString());
+  form.append("window", range.toString());
 
   const res = await fetch("http://127.0.0.1:8000/api/query/frame-idx", {
     method: "POST",

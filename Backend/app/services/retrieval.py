@@ -142,7 +142,7 @@ class GoldenRetriever:
 
         return self._format_results(ids)
     
-    def search_by_frame_idx(self, video_name: str, frame_idx: int, range: int) -> list[VideoItem]:
+    def search_by_frame_idx(self, video_name: str, frame_idx: int, window: int) -> list[VideoItem]:
         video_json_path = f'{settings.DATA_PATH}/media-info-aic25/{video_name}.json'
         if not os.path.exists(video_json_path):
             raise ValueError(f"Video {video_name} not found.")
@@ -154,15 +154,22 @@ class GoldenRetriever:
             raise ValueError(f"No keyframes found for video {video_name}.")
         # Get the index in the array of the closest keyframe at or after the given frame_idx
         choosen_idx = next((i for i, kf in enumerate(keyframes) if kf >= frame_idx), len(keyframes)-1)
-        start_idx = max(0, choosen_idx - range)
-        end_idx = min(len(keyframes) - 1, choosen_idx + range)
-        ids = []
+        start_idx = max(0, choosen_idx - window)
+        end_idx = min(len(keyframes) - 1, choosen_idx + window)
+        results = []
         for i in range(start_idx, end_idx + 1):
             frame = keyframes[i]
             id = self.video_to_id.get((video_name, frame))
-            if id is not None:
-                ids.append(id)
-        return self._format_results(ids)
+            results.append(
+                VideoItem(
+                    id = id,
+                    video_name = video_name,
+                    youtube_id = data.get('watch_url', '').split('?v=')[-1],
+                    start_time = round(frame / fps) if fps is not None else 0,
+                    frame_idx = frame
+                )
+            )
+        return results
         
     def search_video_by_text(self, model: str, metric: str, topK: int, queryText: str) -> list[VideoItem]:
         frames = self.search_by_text(model, metric, topK, queryText)
