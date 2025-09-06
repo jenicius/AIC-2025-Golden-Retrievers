@@ -11,23 +11,26 @@ export function fillCSVforTRAKE(
   frameStep: number,
   num_events: number
 ): Item[] {
-  const sz = data.length;
+  if (data.length === 0) return [];
+
+  const base: Item[] = data.filter(d => Array.isArray(d.frames) && d.frames.length === num_events);
+  const sz = base.length;
   if (sz === 0) return [];
 
-  const result: Item[] = data.map(d => ({ ...d }));
+  const result: Item[] = base.map(d => ({ ...d }));
 
   for (let i = 0; i < maxRow - sz; i++) {
-    const it = data[i % sz];
-    const direction = Math.floor(i / sz) % 2 === 0 ? 1 : -1;
-    const step = Math.floor(i /(2 * sz) + 1) * frameStep;
+    const it = base[i % sz];
+    const direction = (Math.floor(i / sz) % 2 === 0 ? 1 : -1);
+    const step = ((Math.floor(i / (2 * sz)) + 1) * frameStep);
 
-    const newFrames = (it.frames ?? []).map((f,_) => 
-      Math.max(0, f + direction * step)
-    );
+    const newFrames = Array.isArray(it.frames)
+      ? it.frames.map(f => Math.max(0, f + direction * step))
+      : [];
 
     result.push({
       ...it,
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      id: `${i}-${Math.random().toString(36).slice(2, 8)}`, // safer unique ID
       frame_idx: Math.max(0, it.frame_idx + direction * step),
       frames: newFrames,
     });
@@ -35,6 +38,7 @@ export function fillCSVforTRAKE(
 
   return result;
 }
+
 
 export function fillCSVforQAandKIS(
   data: Item[],
