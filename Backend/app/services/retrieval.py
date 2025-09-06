@@ -45,8 +45,12 @@ class GoldenRetriever:
         self.video_to_id = {(v[0], v[1]): k for k, v in self.id_to_video.items()}
         self.id_to_video = {int(k): v for k, v in self.id_to_video.items()}
         
+        self.full_index = json.load(open(f'{settings.DATA_PATH}/OCR/full_index.json', 'r', encoding='utf-8'))
+        self.word_index = json.load(open(f'{settings.DATA_PATH}/OCR/word_index.json', 'r', encoding='utf-8'))
+        
         print("Initialization complete.")
         print(self.device)
+
 
     def load_model(self, model_name: str):
         if self.current_model == model_name:
@@ -57,6 +61,7 @@ class GoldenRetriever:
         
         if hasattr(self, "model") and self.model is not None:
             del self.model
+            del self.index
             torch.cuda.empty_cache()   
             gc.collect()              
         
@@ -106,7 +111,6 @@ class GoldenRetriever:
             text_features = self.model.encode_text(text_tokens).float().cpu().numpy()
 
         distances, ids = self.index.search(text_features, topK)
-        print(ids)
 
         return self._format_results(ids[0])
 
@@ -130,17 +134,38 @@ class GoldenRetriever:
         ids = []
         queryText_norm = strip_accents(queryText).lower()
 
-        for ocr in os.listdir(f'{settings.DATA_PATH}/OCR'):
-            with open(f'{settings.DATA_PATH}/OCR/{ocr}', 'r', encoding='utf-8') as f:
-                ocr_data = json.load(f)
-                for id, texts in ocr_data.items():
-                    normalized_texts = [strip_accents(t).lower() for t in texts]
-                    if queryText_norm in ' '.join(normalized_texts):
-                        ids.append(int(id))
-                        if len(ids) >= topK:
-                            break
-
+        for text in self.full_index['corpus']:
+            text_norm = strip_accents(text).lower()
+            if queryText_norm in text_norm:
+                ids.extend(self.full_index['inverted_index'][text])
+                if len(ids) >= topK:
+                    break
+        
+        if len(ids) > topK:
+            ids = ids[:topK]
+        else:
+            match = {}
+            tokens = queryText_norm.split()
+            for token in tokens:
+                corpus = self.word_index['corpus']
+                match[token] = []
+                for word in corpus:
+                    if token in strip_accents(word):
+                        match[token].extend(self.word_index['inverted_index'][word])
+                match[token] = list(set(match[token]))
+            
+            scores = {}
+            for token in tokens:
+                for video_id in match[token]:
+                    if video_id not in scores:
+                        scores[video_id] = 0
+                    scores[video_id] += 1
+            sorted_scores = sorted(scores.items(), key=lambda x: (-x[1], x[0]))[:topK-len(ids)]
+            ids.extend([video_id for video_id, _ in sorted_scores])
+        
+        ids = [int(i) for i in ids]
         return self._format_results(ids)
+    
     
     def search_by_frame_idx(self, video_name: str, frame_idx: int, window: int) -> list[VideoItem]:
         video_json_path = f'{settings.DATA_PATH}/media-info-aic25/{video_name}.json'
