@@ -3,4 +3,10 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    watch: {
+      // Ignore changes in public/
+      ignored: ['**/public/**'],
+    },
+  },
 })

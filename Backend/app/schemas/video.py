@@ -10,3 +10,6 @@ class VideoItem(BaseModel):
 
 class SearchResponse(BaseModel):
     results: List[VideoItem]
+
+class TimeToFrameIdxResponse(BaseModel):
+    frame_idx: int

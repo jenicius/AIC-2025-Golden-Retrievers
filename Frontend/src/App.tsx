@@ -14,14 +14,11 @@ import {
   queryByText,
   queryByOCR,
   queryByFrameIdx,
-  queryVideoByTextList
+  queryVideoByTextList,
+  convertTimeToFrameIdx
 } from "../src/utils/fetchData";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaRegArrowAltCircleRight } from "react-icons/fa";
 
-/**
- * Types that flex to whatever your JSON looks like.
- * metrics can be an array or an object map; queryBy is a { key: label } map.
- */
 type ModelConfig = {
   metrics?: string[] | Record<string, string>;
   queryBy: Record<string, string>;
@@ -40,20 +37,10 @@ function App() {
   const [frameIdx, setFrameIdx] = useState<string>("");
   const [frameIdxRange, setFrameIdxRange] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [hasVideo, setHasVideo] = useState(false);
+  const [videoTime, setVideoTime] = useState<string>("");
 
-  // Models = keys of JSON
   const modelOptions = useMemo(() => Object.keys(config ?? {}), []);
 
-  // Metrics derived from selected model (supports array or object forms)
-  const metricOptions = useMemo(() => {
-    if (!modelOption) return [] as string[];
-    const m = config[modelOption]?.metrics;
-    if (!m) return [] as string[];
-    return Array.isArray(m) ? m : Object.values(m);
-  }, [modelOption]);
-
-  // QueryBy = entries under selected model
   const queryOptions = useMemo(() => {
     return modelOption ? Object.entries(config[modelOption]?.queryBy ?? {}) : [];
   }, [modelOption]);
@@ -76,28 +63,19 @@ function App() {
         if (key === "ocr") {
           const data = await queryByOCR(text, topK, modelOption, metricOption);
           setGallery(data.results);
-          setHasVideo(true);
         } else if (key === "text") {
           const data = await queryByText(text, topK, modelOption, metricOption);
           setGallery(data.results);
-          setHasVideo(true);
         } else if (key === "textlist") {
           const data = await queryVideoByTextList(text, topK, modelOption, metricOption);
           setGallery(data.results);
-          setHasVideo(true);
         } else if (key === "image") {
           if (!imageFile) {
             console.warn("No image selected for image query.");
             return;
           }
-          const data = await queryByImage(
-            imageFile,
-            topK,
-            modelOption,
-            metricOption
-          );
+          const data = await queryByImage(imageFile, topK, modelOption, metricOption);
           setGallery(data.results);
-          setHasVideo(true);
         } else {
           console.warn("Unknown query option:", key);
         }
@@ -121,13 +99,30 @@ function App() {
       setLoading(true);
       const data = await queryByFrameIdx(videoName, idx, range);
       setGallery(data.results);
-      setHasVideo(true);
     } catch (err) {
       console.error("FrameIdx query failed:", err);
     } finally {
       setLoading(false);
     }
   }, [frameIdx, frameIdxRange, setGallery, videoName]);
+
+  const handleTimeToFrameIdx = useCallback(async () => {
+    if (!videoName || !videoTime) {
+      console.warn("Provide video name and time.");
+      return;
+    }
+    try{
+      setLoading(true);
+      const data = await convertTimeToFrameIdx(videoName, videoTime);
+      setFrameIdx(data.frame_idx.toString());
+      console.log("Frame index", frameIdx);
+    } catch (err) {
+      console.error("TimeToFrameIdx query failed:", err);
+      alert("Failed to convert time to frame index. Please check the video name and time format.");
+    } finally {
+      setLoading(false);
+    }
+  }, [videoName, videoTime]);
 
   return (
     <div className="app-shell">
@@ -146,17 +141,6 @@ function App() {
               setQueryOption("");
             }}
           />
-        </div>
-
-        {/* Row: Video + Top K */}
-        <div className="form-group row">
-          <div className="text-input-small">
-            <label className="form-label">Video</label>
-            <TextInput
-              placeholder="Enter video title here..."
-              onChange={setVideoName}
-            />
-          </div>
           <div className="text-input-small">
             <label className="form-label">Top K</label>
             <TextInput
@@ -166,8 +150,39 @@ function App() {
                 const n = Math.max(1, Number(value) || 1);
                 setTopK(n);
               }}
-              placeholder="Number"
+              placeholder="1"
             />
+          </div>
+        </div>
+
+        <div className="form-group row">
+          <div className="text-input-small">
+            <label className="form-label">Video</label>
+            <TextInput
+              placeholder="E.g., L29_V007"
+              onChange={setVideoName}
+            />
+          </div>
+          
+          <div className="text-input-with-icon">
+            <label className="form-label">Time</label>
+            <div className="input-wrapper">
+            <TextInput
+              type="string"
+              placeholder="HH:MM:SS or MM:SS or SS"
+              onChange={setVideoTime}
+            />
+            <button
+                className="icon-btn-inside"
+                onClick={handleTimeToFrameIdx}
+                disabled={loading}
+                aria-label="Convert time to frame index"
+                title="Convert"
+              >
+                <FaRegArrowAltCircleRight />
+
+          </button>
+          </div>
           </div>
         </div>
 
@@ -178,6 +193,7 @@ function App() {
             <TextInput
               placeholder="Enter frame index here..."
               onChange={setFrameIdx}
+              value={frameIdx}
             />
           </div>
           <div className="text-input-with-icon">
@@ -210,20 +226,24 @@ function App() {
           />
         </div>
 
-        {/* Query options (dynamic buttons) */}
         <div className="form-group button-row">
           {queryOptions.map(([key, label]) => (
             <Button
               key={key}
               label={loading && queryOption === key ? "Loading..." : label}
-              variant="primary"
-              toggle
-              defaultActive={queryOption === key}
+              variant={queryOption === key ? "primary" : "secondary"}
               disabled={loading || !modelOption}
-              onClick={() => handleOnClickQuery(key)}
+              onClick={() => {
+                if (key === "image" && !imageFile) {
+                  alert("Please select an image before running an image query.");
+                  return;
+                }
+                handleOnClickQuery(key);
+              }}
             />
           ))}
         </div>
+
 
         <ImageDropper onChange={setImageFile} />
       </div>
@@ -241,8 +261,6 @@ function App() {
 
           <div className="app-display">
             <VideoGallery />
-            {/* If you want to react to hasVideo, use it to conditionally render or show empty state */}
-            {/* {!hasVideo && <div className="empty">No results yet. Try a query.</div>} */}
           </div>
         </div>
       </div>

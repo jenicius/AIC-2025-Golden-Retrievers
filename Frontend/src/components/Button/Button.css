@@ -1,43 +1,79 @@
-.btn {
-  flex: 1;
-  padding: 12px 0;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
+
+button {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 1rem;
   font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.6rem;
   cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  border: none;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-primary {
-  background-color: #d39c5f;
+  background: var(--honey);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(139,94,60,0.25);
+  border-radius: 10px;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--deep);
+}
+.btn-primary.active {
+  background: var(--deep);
+  box-shadow: 0 0 0 3px rgba(212,169,77,0.35);
+}
+
+.btn-secondary {
+  background: var(--sand);
+  color: var(--brown);
+  box-shadow: 0 2px 4px rgba(139,94,60,0.15);
+  border-radius: 10px;
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--honey);
   color: #fff;
 }
-
-/* Hover */
-.btn:hover:not(.disabled) {
-  background-color: #c28848;
+.btn-secondary.active {
+  background: var(--honey);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(212,169,77,0.35);
 }
 
-/* Active (pressed down) */
-.btn:active:not(.disabled) {
-  transform: translateY(1px);
+.btn-danger {
+  background: #e76f51;
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(231,111,81,0.25);
+}
+.btn-danger:hover:not(:disabled) {
+  background: #d35442;
+}
+.btn-danger.active {
+  background: #d35442;
+  box-shadow: 0 0 0 3px rgba(231,111,81,0.35);
 }
 
-/* Toggle ON */
-.btn.active {
-  background-color: #8a5b2e;
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--brown);
+  color: var(--brown);
 }
-
-/* Toggle OFF */
-.btn.inactive {
-  background-color: #e1c5a0;
-  color: #444;
+.btn-outline:hover:not(:disabled) {
+  background: var(--beige);
+  color: var(--deep);
 }
-
-.btn.disabled,
-.btn:disabled {
-  background-color: #ddd;
-  color: #888;
-  cursor: not-allowed;
-  box-shadow: none;
+.btn-outline.active {
+  background: var(--brown);
+  color: #fff;
 }
