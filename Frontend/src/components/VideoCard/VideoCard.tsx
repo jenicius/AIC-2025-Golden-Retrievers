@@ -60,7 +60,7 @@ const VideoCard = memo(function VideoCard({ item, className }: Props) {
 
   // preview_image_directory is already the image path
   useEffect(() => {
-    setPreviewUrl(`Batch1_small/Keyframes_${item.video_name.slice(0,3)}/${item.video_name}/${item.id}.jpg`);
+    setPreviewUrl(`previews/${item.id}.jpg`);
   }, []);
 
   const addToCsv = () => {
