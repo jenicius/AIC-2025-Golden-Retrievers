@@ -78,24 +78,19 @@ class GoldenRetriever:
         results = []
         for i in ids:
             try:
-                video_name, frame_n = self.id_to_video[i]
-                
-                video_csv_path = f'{settings.DATA_PATH}/map-keyframes-aic25-b1/map-keyframes/{video_name}.csv'
-                video_csv = pd.read_csv(video_csv_path)
-                frame_row = video_csv[video_csv['n'] == frame_n]            
-                start_time = frame_row['pts_time'].values[0]
-                frame_idx = frame_row['frame_idx'].values[0]
+                video_name, frame_idx = self.id_to_video[i]
 
-                video_json_path = f'{settings.DATA_PATH}/media-info-aic25-b1/media-info/{video_name}.json'
+                video_json_path = f'{settings.DATA_PATH}/media-info-aic25/{video_name}.json'
                 video_json = json.load(open(video_json_path, encoding='utf-8'))
                 youtube_id = video_json.get('watch_url', '').split('?v=')[-1]
+                fps = video_json.get('fps', 0)  # Default to 30 if not found
 
                 results.append(
                     VideoItem(
                         id = i,
                         video_name = video_name,
                         youtube_id = youtube_id,
-                        start_time = round(start_time),
+                        start_time = round(frame_idx / fps) if fps is not None else 0,
                         frame_idx = frame_idx
                     )
                 )
@@ -111,6 +106,7 @@ class GoldenRetriever:
             text_features = self.model.encode_text(text_tokens).float().cpu().numpy()
 
         distances, ids = self.index.search(text_features, topK)
+        print(ids)
 
         return self._format_results(ids[0])
 
@@ -146,45 +142,35 @@ class GoldenRetriever:
 
         return self._format_results(ids)
     
-    def search_by_frame_idx(self, video_name: str, frame_idx: int, range: int) -> list[VideoItem]:
-        video_csv_path = f'{settings.DATA_PATH}/map-keyframes-aic25-b1/map-keyframes/{video_name}.csv'
-        video_csv = pd.read_csv(video_csv_path)
-
-        if video_csv.empty:
-            raise ValueError(f"No data found for video {video_name}.")
+    def search_by_frame_idx(self, video_name: str, frame_idx: int, window: int) -> list[VideoItem]:
+        video_json_path = f'{settings.DATA_PATH}/media-info-aic25/{video_name}.json'
+        if not os.path.exists(video_json_path):
+            raise ValueError(f"Video {video_name} not found.")
         
-        frame_row = video_csv[video_csv['frame_idx'] >= frame_idx]
-        if frame_row.empty:
-            raise ValueError(f"No frame found at or after index {frame_idx} in video {video_name}.")
-        target_n = frame_row['n'].values[0]
-        
-        lower_bound = max(0, target_n - range)
-        upper_bound = target_n + range
-        
-        relevant_rows = video_csv[(video_csv['n'] >= lower_bound) & (video_csv['n'] <= upper_bound)]
-        
+        data = json.load(open(video_json_path, encoding='utf-8'))
+        fps = data.get('fps', 30)  # Default to 30 if not found
+        keyframes = data.get('keyframes', [])
+        if not keyframes:
+            raise ValueError(f"No keyframes found for video {video_name}.")
+        # Get the index in the array of the closest keyframe at or after the given frame_idx
+        choosen_idx = next((i for i, kf in enumerate(keyframes) if kf >= frame_idx), len(keyframes)-1)
+        start_idx = max(0, choosen_idx - window)
+        end_idx = min(len(keyframes) - 1, choosen_idx + window)
         results = []
-        for _, row in relevant_rows.iterrows():
-            n = row['n']
-            frame_idx = row['frame_idx']
-            pts_time = row['pts_time']
-            
-            video_json_path = f'{settings.DATA_PATH}/media-info-aic25-b1/media-info/{video_name}.json'
-            video_json = json.load(open(video_json_path, encoding='utf-8'))
-            youtube_id = video_json.get('watch_url', '').split('?v=')[-1]
-            
+        for i in range(start_idx, end_idx + 1):
+            frame = keyframes[i]
+            id = self.video_to_id.get((video_name, frame))
             results.append(
                 VideoItem(
-                    id = self.video_to_id.get((video_name, n), -1),
+                    id = id,
                     video_name = video_name,
-                    youtube_id = youtube_id,
-                    start_time = round(pts_time),
-                    frame_idx = frame_idx
+                    youtube_id = data.get('watch_url', '').split('?v=')[-1],
+                    start_time = round(frame / fps) if fps is not None else 0,
+                    frame_idx = frame
                 )
             )
-        
         return results
-    
+        
     def search_video_by_text(self, model: str, metric: str, topK: int, queryText: str) -> list[VideoItem]:
         frames = self.search_by_text(model, metric, topK, queryText)
         video = {}
@@ -223,13 +209,13 @@ class GoldenRetriever:
         return sorted_videos
     
     def convert_time_to_frame_idx(self, video_name: str, time: float) -> int:
-        video_csv_path = f'{settings.DATA_PATH}/map-keyframes-aic25-b1/map-keyframes/{video_name}.csv'
-        video_csv = pd.read_csv(video_csv_path)
-        
-        if video_csv.empty:
-            raise ValueError(f"No data found for video {video_name}.")
-
-        fps = video_csv['fps'].values[0]
-        return int(time * fps) 
+        video_csv_path = f'{settings.DATA_PATH}/media-info-aic25/{video_name}.json'
+        with open(video_csv_path, 'r', encoding='utf-8') as f:
+            video_json = json.load(f)
+            fps = video_json.get('fps')  # Default to 30 if not found
+        if fps is not None:
+            return int(time * fps)
+        else:
+            raise ValueError(f"FPS information not found for video {video_name}.")
     
 golden_retriever = GoldenRetriever()
