@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     ENVIRONMENT: str = "local"
-    DATA_PATH: str = "C:\Learning\AIC2025\AIC-2025-Golden-Retrievers\Backend\Data"
+    DATA_PATH: str = "D:\AIC2020\Data"
 
     class Config:
         env_file = ".env"

@@ -10,7 +10,6 @@ colorama==0.4.6
 dnspython==2.7.0
 email-validator==2.3.0
 exceptiongroup==1.2.0
-faiss==1.9.0
 fastapi==0.116.1
 fastapi-cli==0.0.8
 fastapi-cloud-cli==0.1.5
@@ -37,7 +36,6 @@ orjson==3.11.3
 packaging==25.0
 pandas==2.3.1
 pillow==11.3.0
-pip==25.1
 pycparser==2.21
 pydantic==2.11.7
 pydantic_core==2.33.2
