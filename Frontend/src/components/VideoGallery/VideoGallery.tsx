@@ -28,7 +28,7 @@ export default function VideoGallery() {
   return (
     <div className="vg-grid">
       {videos.map((v, i) => (
-        <VideoCard key={`${v.youtube_id}-${i}`} item={v} />
+        <VideoCard key={`${v.id}-${i}`} item={v} />
       ))}
     </div>
   );
