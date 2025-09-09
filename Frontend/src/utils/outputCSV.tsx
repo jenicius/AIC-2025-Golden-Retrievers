@@ -67,7 +67,7 @@ export function fillCSVforQAandKIS(
 }
 
 function downloadCSV(lines: string[], filename: string) {
-  const csv = "\uFEFF" + lines.join("\n");
+  const csv = lines.join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
 
@@ -83,7 +83,6 @@ function downloadCSV(lines: string[], filename: string) {
   a.remove();
   URL.revokeObjectURL(url);
 }
-
 
 export function KIStoCSV(data: Item[], filename: string) {
   const maxRow =
