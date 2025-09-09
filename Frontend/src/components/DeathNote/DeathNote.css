@@ -1,0 +1,109 @@
+/* Controls row */
+.dn-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.dn-controls .dropdown {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.dn-controls .dropdown-toggle,
+.dn-controls .dn-clear {
+  flex: 1;
+  text-align: center;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+/* Dropdown toggle styling */
+.dn-controls .dropdown-toggle {
+  background: var(--honey);
+  border: none;
+  color: #fff;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.dn-controls .dropdown-toggle:hover {
+  background: var(--deep);
+  transform: translateY(-1px);
+}
+
+/* Apply button styling */
+.dn-controls .dn-clear {
+  background: var(--sand);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.dn-controls .dn-clear:hover {
+  background: var(--honey);
+  transform: translateY(-1px);
+}
+
+/* ===== Dropdown Menu (List) ===== */
+.dn-controls .dropdown-menu {
+  background: var(--beige);
+  border: 1px solid var(--sand);
+  border-radius: 12px;
+  padding: 6px;
+  min-width: 220px;
+  box-shadow: 0 6px 14px rgba(139, 94, 60, 0.25);
+}
+
+/* Empty state */
+.dn-empty {
+  display: block;
+  text-align: center;
+  font-style: italic;
+  color: var(--brown);
+  padding: 10px 6px;
+  font-size: 0.9rem;
+}
+
+/* Each row */
+.dn-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.dn-row:hover {
+  background: rgba(212, 169, 77, 0.15);
+}
+
+/* Item text */
+.dn-text {
+  font-size: 0.95rem;
+  color: #2f3a3a;
+  flex: 1;
+  margin-right: 6px;
+}
+
+/* Delete button inside dropdown */
+.dn-del {
+  background: var(--sand);
+  border: none;
+  border-radius: 20%;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: bold;
+  line-height: 0.5;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dn-del:hover {
+  background: var(--deep);
+}
