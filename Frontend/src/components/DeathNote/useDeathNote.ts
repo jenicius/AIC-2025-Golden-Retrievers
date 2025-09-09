@@ -7,7 +7,6 @@ export function useDeathNote() {
     setDeathNote((prev) => prev.filter((it) => it !== item));
   };
 
-  // This only triggers when you call it (e.g. from a button click)
   const applyFilter = useCallback(() => {
     window.dispatchEvent(
       new CustomEvent("gallery:filter", { detail: [...deathNote] })
