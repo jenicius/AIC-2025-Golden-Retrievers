@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
 import {
   TextInput,
@@ -7,6 +7,7 @@ import {
   Button,
   MakeCSV,
   VideoGallery,
+  DeathNote
 } from "./components";
 import rawConfig from "../config/models.json";
 import {
@@ -31,7 +32,7 @@ function App() {
   const [topK, setTopK] = useState<number>(1);
   const [modelOption, setModelOption] = useState("");
   const [metricOption, setMetricOption] = useState("");
-  const [queryOption, setQueryOption] = useState("");
+  const [queryOption, setQueryOption] = useState("  ");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [videoName, setVideoName] = useState("");
   const [frameIdx, setFrameIdx] = useState<string>("");
@@ -43,6 +44,13 @@ function App() {
 
   const queryOptions = useMemo(() => {
     return modelOption ? Object.entries(config[modelOption]?.queryBy ?? {}) : [];
+  }, [modelOption]);
+
+  useEffect(() => {
+    if(modelOption) {
+      setQueryOption(Object.keys(config[modelOption]?.queryBy ?? {})[0] ?? "");
+      setMetricOption("");
+    }
   }, [modelOption]);
 
   const setGallery = useCallback((results: unknown) => {
@@ -216,44 +224,52 @@ function App() {
           </div>
         </div>
 
-        {/* Query by Text */}
-        <div className="form-group text-input-large">
-          <label className="form-label">Query by Text</label>
-          <TextInput
-            multiline
-            placeholder="Enter query text here..."
-            onChange={setText}
-          />
-        </div>
-
         <div className="form-group button-row">
           {queryOptions.map(([key, label]) => (
             <Button
               key={key}
-              label={loading && queryOption === key ? "Loading..." : label}
+              label={label}
               variant={queryOption === key ? "primary" : "secondary"}
-              disabled={loading || !modelOption}
-              onClick={() => {
-                if (key === "image" && !imageFile) {
-                  alert("Please select an image before running an image query.");
-                  return;
-                }
-                handleOnClickQuery(key);
-              }}
+              onClick={() => setQueryOption(key)}
             />
           ))}
         </div>
 
 
-        <ImageDropper onChange={setImageFile} />
+        { queryOption === "image" ? (
+        <div className="form-group">
+          <ImageDropper onChange={setImageFile} />
+        </div>
+        ) : (
+          <div className="form-group">
+            <label className="form-label">Query by Text</label>
+            <TextInput
+              multiline
+              placeholder="Enter query text here..."
+              onChange={setText}
+            />
+          </div>
+        ) }
+        <Button
+          label={loading ? "Loading..." : "Run Query"}
+          variant="primary"
+          disabled={loading}
+          onClick={() => {
+                if (queryOption === "image" && !imageFile) {
+                  alert("Please select an image before running an image query.");
+                  return;
+                }
+                handleOnClickQuery(queryOption);
+              }}
+        />
+        <DeathNote />
       </div>
 
-      {/* RIGHT PANEL */}
       <div className="app-right">
         <div className="app-content">
-          <div className="app-header">
+          {/* <div className="app-header">
             <h1 className="app-title">Golden Retrievers</h1>
-          </div>
+          </div> */}
 
           <div className="app-makecsv">
             <MakeCSV />
