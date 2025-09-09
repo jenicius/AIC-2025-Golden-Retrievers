@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, memo } from "react";
 import "./VideoCard.css";
+import { FaSkull } from "react-icons/fa";
 
 export type VideoItem = {
   id: string;
@@ -71,6 +72,14 @@ const VideoCard = memo(function VideoCard({ item, className }: Props) {
     );
   };
 
+  const addToDeathNote = () => {
+    window.dispatchEvent(
+      new CustomEvent("deathnote:add", {
+        detail: { video_name: item.video_name },
+      })
+    );
+  };
+
   const start = Math.max(0, Math.floor(item.start_time || 0));
   const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(
     item.youtube_id
@@ -124,9 +133,14 @@ const VideoCard = memo(function VideoCard({ item, className }: Props) {
                   Preview image
                 </button>
               )}
-              <button type="button" className="vg-btn" onClick={addToCsv}>
-                To CSV
+              <div className="vg-btn-group">
+                <button type="button" className="vg-btn" onClick={addToCsv}>
+                  CSV
+                </button>
+                <button type ="button" className="vg-btn-deathnote" onClick={addToDeathNote}>
+                  <FaSkull/>
               </button>
+              </div>
             </div>
 
             <p className="vg-sub">

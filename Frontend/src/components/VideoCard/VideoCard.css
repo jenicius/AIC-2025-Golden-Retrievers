@@ -80,8 +80,28 @@
   margin: 0;
   border-radius: 10px;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(184,134,11,0.18);
+  cursor: pointer;
+  transition: transform .06s ease, filter .12s ease;
 }
+
+.vg-btn-deathnote {
+  background: var(--darkred, #4d3b0d);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  margin: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform .06s ease, filter .12s ease;
+}
+
+.vg-btn-group {
+  display: inline-flex;
+  gap: 5%; 
+  align-items: center;
+}
+
 
 .vg-switch-meta {
   padding: 6px 12px;
