@@ -17,7 +17,8 @@ import {
   queryByOCR,
   queryByFrameIdx,
   queryVideoByTextList,
-  convertTimeToFrameIdx
+  convertTimeToFrameIdx,
+  queryBySpeech
 } from "../src/utils/fetchData";
 import { FaSearch, FaRegArrowAltCircleRight } from "react-icons/fa";
 import { readQueryFromFolder } from "../src/utils/readQuery";
@@ -71,7 +72,10 @@ function App() {
 
       try {
         setLoading(true);
-        if (key === "ocr") {
+        if (key === "speech") {
+          const data = await queryBySpeech(text, topK, modelOption, metricOption);
+          setGallery(data.results);
+        } else if (key === "ocr") {
           const data = await queryByOCR(text, topK, modelOption, metricOption);
           setGallery(data.results);
         } else if (key === "text") {

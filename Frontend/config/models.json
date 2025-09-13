@@ -53,6 +53,13 @@
         "queryBy": {
             "ocr": "OCR"
         }
+    },
+    "speech": {
+        "metrics": {
+        },
+        "queryBy": {
+            "speech": "Speech"
+        }
     }
        
 }

@@ -149,3 +149,21 @@ export async function convertTimeToFrameIdx(
 
   return await res.json();
 }
+
+export async function queryBySpeech(
+  text: string,
+  topK: number,
+  model: string,
+  metric: string
+) {
+  const res = await fetch("http://127.0.0.1:8000/api/query/speech", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ queryText: text, topK, model, metric }),
+  });
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+  const data = await res.json();
+  return data;
+}
