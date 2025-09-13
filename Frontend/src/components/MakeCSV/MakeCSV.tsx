@@ -2,6 +2,7 @@ import { Card, Form, Button, Dropdown } from "react-bootstrap";
 import "./MakeCSV.css";
 import DropDown from "../DropDown/DropDown";
 import { useMakeCSV } from "./useMakeCSV";
+import { useEffect } from "react";
 
 function MakeCSV() {
   const {
@@ -15,6 +16,20 @@ function MakeCSV() {
     idxInvalid, numEventsInvalid,
     addDisabled, addItem, removeAt, onSubmit,
   } = useMakeCSV();
+
+  useEffect(() => {
+    function handleQuerySelected(e: Event) {
+      const customEvent = e as CustomEvent<{ name: string; text: string }>;
+      if (customEvent.detail?.name) {
+        setFileName(customEvent.detail.name);
+      }
+    }
+
+    window.addEventListener("querySelected", handleQuerySelected);
+    return () => {
+      window.removeEventListener("querySelected", handleQuerySelected);
+    };
+  }, [setFileName]);
 
   return (
     <Card className="mcsv-card">

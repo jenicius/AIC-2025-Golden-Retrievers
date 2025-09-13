@@ -7,7 +7,8 @@ import {
   Button,
   MakeCSV,
   VideoGallery,
-  DeathNote
+  DeathNote,
+  QueryView
 } from "./components";
 import rawConfig from "../config/models.json";
 import {
@@ -19,6 +20,7 @@ import {
   convertTimeToFrameIdx
 } from "../src/utils/fetchData";
 import { FaSearch, FaRegArrowAltCircleRight } from "react-icons/fa";
+import { readQueryFromFolder } from "../src/utils/readQuery";
 
 type ModelConfig = {
   metrics?: string[] | Record<string, string>;
@@ -29,6 +31,7 @@ const config = rawConfig as Record<string, ModelConfig>;
 
 function App() {
   const [text, setText] = useState("");
+  const [OCRtext, setOCRText] = useState("");
   const [topK, setTopK] = useState<number>(1);
   const [modelOption, setModelOption] = useState("");
   const [metricOption, setMetricOption] = useState("");
@@ -242,11 +245,12 @@ function App() {
         </div>
         ) : (
           <div className="form-group">
-            <label className="form-label">Query by Text</label>
+            <label className="form-label">{queryOption === "ocr" ? "Query by OCR" : "Query by Text"}</label>
             <TextInput
               multiline
               placeholder="Enter query text here..."
-              onChange={setText}
+              onChange={queryOption === "ocr" ? setOCRText : setText}
+              value={queryOption === "ocr" ? OCRtext : text}
             />
           </div>
         ) }
@@ -263,6 +267,7 @@ function App() {
               }}
         />
         <DeathNote />
+        <QueryView />
       </div>
 
       <div className="app-right">

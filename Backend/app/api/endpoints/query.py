@@ -3,6 +3,7 @@ from fastapi import APIRouter, Form, File, UploadFile
 from app.schemas.query import TextListQueryRequest, TextQueryRequest, OcrQueryRequest
 from app.schemas.video import SearchResponse, TimeToFrameIdxResponse
 from app.services.retrieval import golden_retriever
+from app.services.readQuery import read_queries_from_folder
 
 router = APIRouter()
 
@@ -62,3 +63,8 @@ async def convert_time_to_frame_idx(
         video_name=video_name, time=time
     )
     return TimeToFrameIdxResponse(frame_idx=result)
+
+@router.post("/read_queries")
+async def read_queries():
+    queries_text, queries_names = read_queries_from_folder()
+    return {"queries_text": queries_text, "queries_names": queries_names}

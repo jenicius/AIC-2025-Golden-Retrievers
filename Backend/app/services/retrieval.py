@@ -240,5 +240,5 @@ class GoldenRetriever:
             return int(time * fps)
         else:
             raise ValueError(f"FPS information not found for video {video_name}.")
-    
+        
 golden_retriever = GoldenRetriever()
