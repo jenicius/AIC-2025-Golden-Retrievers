@@ -10,6 +10,8 @@ from PIL import Image
 from app.core.config import settings
 from app.schemas.video import VideoItem
 import unicodedata
+from whoosh.qparser import QueryParser
+from whoosh.index import open_dir
 
 #helper
 def strip_accents(text: str) -> str:
@@ -45,6 +47,8 @@ class GoldenRetriever:
         
         self.full_index = json.load(open(f'{settings.DATA_PATH}/OCR/full_index.json', 'r', encoding='utf-8'))
         self.word_index = json.load(open(f'{settings.DATA_PATH}/OCR/word_index.json', 'r', encoding='utf-8'))
+        
+        self.audio_index = open_dir(f'{settings.DATA_PATH}/Speech')
         
         print("Initialization complete.")
         print(self.device)
@@ -162,6 +166,18 @@ class GoldenRetriever:
             ids.extend([video_id for video_id, _ in sorted_scores])
         
         ids = [int(i) for i in ids]
+        return self._format_results(ids)
+    
+    def search_by_speech(self, model: str, metric: str, topK: int, queryText: str) -> list[VideoItem]:
+        parser = QueryParser("content", self.audio_index.schema)
+        myquery = parser.parse(queryText)  
+        
+        ids = []
+        with self.audio_index.searcher() as searcher:
+            results = searcher.search(myquery, limit=topK)
+            for hit in results:
+                ids.extend([int(i) for i in hit['ids']])
+        
         return self._format_results(ids)
     
     

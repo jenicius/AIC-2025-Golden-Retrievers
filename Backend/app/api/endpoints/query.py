@@ -33,6 +33,13 @@ async def query_by_ocr(query: OcrQueryRequest):
     )
     return SearchResponse(results=results)
 
+@router.post("/speech", response_model=SearchResponse)
+async def query_by_speech(query: OcrQueryRequest):
+    results = golden_retriever.search_by_speech(
+        model=query.model, metric=query.metric, topK=query.topK, queryText=query.queryText
+    )
+    return SearchResponse(results=results)
+
 @router.post("/frame-idx", response_model=SearchResponse)
 async def query_by_frame_idx(
     video_name: str = Form(...),

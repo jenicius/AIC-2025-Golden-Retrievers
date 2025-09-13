@@ -11,6 +11,12 @@ class OcrQueryRequest(BaseModel):
     metric: str
     topK: int
     queryText: str
+    
+class SpeechQueryRequest(BaseModel):
+    model: str
+    metric: str
+    topK: int
+    queryText: str
 
 class FrameIdxQueryRequest(BaseModel):
     video_name: str
