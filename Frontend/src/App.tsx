@@ -76,7 +76,8 @@ function App() {
           const data = await queryBySpeech(text, topK, modelOption, metricOption);
           setGallery(data.results);
         } else if (key === "ocr") {
-          const data = await queryByOCR(text, topK, modelOption, metricOption);
+          const data = await queryByOCR(OCRtext, topK, modelOption, metricOption);
+          console.log("OCR data:", OCRtext);
           setGallery(data.results);
         } else if (key === "text") {
           const data = await queryByText(text, topK, modelOption, metricOption);
@@ -100,7 +101,7 @@ function App() {
         setLoading(false);
       }
     },
-    [imageFile, metricOption, modelOption, setGallery, text, topK]
+    [imageFile, metricOption, modelOption, setGallery, text, topK, OCRtext]
   );
 
   const handleFrameSearch = useCallback(async () => {
