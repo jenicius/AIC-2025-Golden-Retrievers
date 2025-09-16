@@ -156,11 +156,57 @@ export async function queryBySpeech(
   model: string,
   metric: string
 ) {
+  console.log("Query by speech:", text, topK, model, metric);
   const res = await fetch("http://127.0.0.1:8000/api/query/speech", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ queryText: text, topK, model, metric }),
   });
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+  const data = await res.json();
+  return data;
+}
+
+export async function queryByMultiModal(
+  text: string,
+  file: File | null,
+  ocrText: string,
+  speechText: string,
+  topK: number = 10,
+  model: string,
+  metric: string
+) {
+  const form = new FormData();
+
+  if (text) {
+    form.append('queryText', text);
+  }
+  if (ocrText) {
+    form.append('ocrText', ocrText);
+  }
+  if (speechText) {
+    form.append('speechText', speechText);
+  }
+
+  if (file) {
+    form.append('image', file);
+  }
+
+  form.append('topK', topK.toString());
+  form.append('model', model);
+  form.append('metric', metric);
+
+  const res = await fetch(`http://127.0.0.1:8000/api/query/multi-modal`, {
+    method: 'POST',
+    body: form
+  });
+
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+
   if (!res.ok) {
     throw new Error(`Server error: ${res.status}`);
   }

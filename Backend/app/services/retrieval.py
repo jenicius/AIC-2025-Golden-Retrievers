@@ -12,6 +12,9 @@ from app.schemas.video import VideoItem
 import unicodedata
 from whoosh.qparser import QueryParser
 from whoosh.index import open_dir
+from typing import List, Optional, Set
+from collections import defaultdict
+import concurrent.futures
 
 #helper
 def strip_accents(text: str) -> str:
@@ -256,5 +259,81 @@ class GoldenRetriever:
             return int(time * fps)
         else:
             raise ValueError(f"FPS information not found for video {video_name}.")
+        
+        
+    def search_by_multi_modal(
+        self,
+        model: str,
+        metric: str,
+        topK: int,
+        text_query: Optional[str] = None,
+        image_bytes: Optional[bytes] = None,
+        ocr_query: Optional[str] = None,
+        speech_query: Optional[str] = None
+    ) -> List['VideoItem']:
+
+        tasks = {
+            self.search_by_text: text_query,
+            self.search_by_image: image_bytes,
+            self.search_by_ocr: ocr_query,
+            self.search_by_speech: speech_query,
+        }
+        
+        active_tasks = [(func, query) for func, query in tasks.items() if query]
+
+        if not active_tasks:
+            return []
+        
+        if len(active_tasks) == 1:
+            func, query = active_tasks[0]
+            return func(model, metric, topK, query)
+
+        fetch_k = max(topK * 5, 100)
+        modality_counts = defaultdict(int)
+        rrf_scores = defaultdict(float)
+        RRF_K = 60
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            active_searches = {
+                executor.submit(search_func, model, metric, fetch_k, query): search_func
+                for search_func, query in tasks.items() if query
+            }
+
+            if not active_searches:
+                return []
+
+            for future in concurrent.futures.as_completed(active_searches):
+                try:
+                    video_items = future.result()
+                    search_func = active_searches[future]
+                    
+                    use_rrf = search_func in [self.search_by_text, self.search_by_image]
+
+                    for rank, item in enumerate(video_items):
+                        video_id = item.id
+                        modality_counts[video_id] += 1
+
+                        if use_rrf:
+                            rrf_scores[video_id] += 1 / (RRF_K + rank + 1)
+                        else:
+                            rrf_scores[video_id] += 1  # Just add 1 for OCR and speech
+
+                except Exception as exc:
+                    print(f'A search generated an exception: {exc}')
+
+        if not modality_counts:
+            return []
+
+        all_unique_ids = list(modality_counts.keys())
+
+        sorted_ids = sorted(
+            all_unique_ids,
+            key=lambda vid: (modality_counts[vid], rrf_scores[vid]),
+            reverse=True
+        )
+
+        return self._format_results(sorted_ids[:topK])
+
+
         
 golden_retriever = GoldenRetriever()
