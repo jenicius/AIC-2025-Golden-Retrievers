@@ -8,7 +8,8 @@ import {
   MakeCSV,
   VideoGallery,
   DeathNote,
-  QueryView
+  QueryView,
+  SessionDisplay
 } from "./components";
 import rawConfig from "../config/models.json";
 import {
@@ -21,7 +22,6 @@ import {
   queryBySpeech
 } from "../src/utils/fetchData";
 import { FaSearch, FaRegArrowAltCircleRight } from "react-icons/fa";
-import { readQueryFromFolder } from "../src/utils/readQuery";
 
 type ModelConfig = {
   metrics?: string[] | Record<string, string>;
@@ -36,7 +36,7 @@ function App() {
   const [topK, setTopK] = useState<number>(1);
   const [modelOption, setModelOption] = useState("");
   const [metricOption, setMetricOption] = useState("");
-  const [queryOption, setQueryOption] = useState("  ");
+  const [queryOption, setQueryOption] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [videoName, setVideoName] = useState("");
   const [frameIdx, setFrameIdx] = useState<string>("");
@@ -273,6 +273,7 @@ function App() {
         />
         <DeathNote />
         <QueryView />
+        <SessionDisplay />
       </div>
 
       <div className="app-right">

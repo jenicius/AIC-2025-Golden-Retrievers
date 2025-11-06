@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { Item } from "./types";
 import { sanitizeFileName } from "./helper";
 import { KIStoCSV, QAtoCSV, TRAKEtoCSV } from "../../utils/outputCSV";
+import { getEvaluationID, getSessionID } from "../../api/service";
 
 export function useMakeCSV() {
   const [queryType, setQueryType] = useState<"" | "KIS" | "QA" | "TRAKE">("");
@@ -11,6 +12,8 @@ export function useMakeCSV() {
   const [numEvents, setNumEvents] = useState<string>("0");
   const [answer, setAnswer] = useState(""); 
   const [items, setItems] = useState<Item[]>([]);
+  const [sessionID, setSessionID] = useState<any>(null); 
+  const [evaluationID, setEvaluationID] = useState<any | null>(null);
 
   const isQA = queryType === "QA";
   const isTRAKE = queryType === "TRAKE";
@@ -35,6 +38,23 @@ export function useMakeCSV() {
     return () => window.removeEventListener("csv:add", handler as EventListener);
   }, []);
 
+  const fetchSessionAndEvaluation = useCallback(async () => {
+    try {
+      const session = await getSessionID();
+      const evaluationId = await getEvaluationID(session.sessionId);
+      setSessionID(session.sessionId);
+      setEvaluationID(evaluationId.id);
+      console.log("Fetched Session ID and Evaluation ID");
+      console.log("Session ID:", session);
+      console.log("Evaluation ID:", evaluationId.id);
+    } catch (error) {
+      console.error("Error fetching session and evaluation IDs:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSessionAndEvaluation();
+  }, [fetchSessionAndEvaluation]);
 
   const idx = Number(frameIdx);
   const nEvents = Number(numEvents);
@@ -120,6 +140,9 @@ export function useMakeCSV() {
     answer, setAnswer,
     items, addItem, removeAt, onSubmit,
     idxInvalid, numEventsInvalid, addDisabled,
-    isQA, isTRAKE
+    isQA, isTRAKE,
+    sessionID, setSessionID,
+    evaluationID, setEvaluationID,
+    fetchSessionAndEvaluation,
   };
 }

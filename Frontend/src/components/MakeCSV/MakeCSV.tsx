@@ -1,6 +1,5 @@
 import { Card, Form, Button, Dropdown } from "react-bootstrap";
 import "./MakeCSV.css";
-import DropDown from "../DropDown/DropDown";
 import { useMakeCSV } from "./useMakeCSV";
 import { useEffect } from "react";
 
@@ -15,6 +14,9 @@ function MakeCSV() {
     items, isQA, isTRAKE,
     idxInvalid, numEventsInvalid,
     addDisabled, addItem, removeAt, onSubmit,
+    sessionID, setSessionID,
+    evaluationID, setEvaluationID,
+    fetchSessionAndEvaluation
   } = useMakeCSV();
 
   useEffect(() => {
@@ -36,30 +38,66 @@ function MakeCSV() {
       <Card.Body>
         <form className="mcsv" onSubmit={onSubmit}>
           <div className="mcsv-row">
-            <label className="mcsv-label">File Name</label>
+            {/* <label className="mcsv-label">File Name</label>
             <Form.Control
               className="mcsv-input mcsv-grow"
               value={fileName}
               onChange={(e) => setFileName(e.target.value)}
               placeholder="Don't include .csv at the end"
+            /> */}
+            <Button 
+              type="button"
+              className="mcsv-btn mcsv-shrink"
+              onClick={fetchSessionAndEvaluation}
+            >
+              Fetch
+            </Button>
+            <label className="mcsv-label">Session ID</label>
+            <Form.Control
+              className="mcsv-input mcsv-grow"
+              value={sessionID}
+              onChange={(e) => setSessionID(e.target.value)}
+              placeholder="Session ID"
+            />
+            <label className="mcsv-label">Evaluation ID</label>
+            <Form.Control 
+              className="mcsv-input mcsv-grow"
+              value={evaluationID}
+              onChange={(e) => setEvaluationID(e.target.value)}
+              placeholder="Evaluation ID"
             />
 
-            <DropDown
+            {/* <DropDown
               options={["KIS", "QA", "TRAKE"]}
               value={queryType}
               onChange={(value: string) => setQueryType(value as "" | "KIS" | "QA" | "TRAKE")}
-            />
+            /> */}
 
             <Button
               type="submit"
               className="mcsv-btn mcsv-shrink"
               disabled={!fileName.trim() || items.length === 0}
             >
-              Make CSV
+              Submit
             </Button>
           </div>
 
           <div className="mcsv-row">
+            {/* <DropDown
+              options={["KIS", "QA", "TRAKE"]}
+              value={queryType}
+              onChange={(value: string) => setQueryType(value as "" | "KIS" | "QA" | "TRAKE")}
+            /> */}
+            <Form.Select
+              className="mcsv-input mcsv-grow"
+              value={queryType}
+              onChange={(e) => setQueryType(e.target.value as "" | "KIS" | "QA" | "TRAKE")}
+            >
+              <option value="">Select Query Type</option>
+              <option value="KIS">KIS</option>
+              <option value="QA">QA</option>
+              <option value="TRAKE">TRAKE</option>
+            </Form.Select>
             <label className="mcsv-label">video_id</label>
             <Form.Control
               className="mcsv-input"

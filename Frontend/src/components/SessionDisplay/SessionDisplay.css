@@ -1,0 +1,83 @@
+/* Container styling */
+.session-container {
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  max-width: 400px;
+  margin: 40px auto;
+  text-align: center;
+  font-family: Inter, system-ui, sans-serif;
+  background-color: #fdf6e3;
+}
+
+/* Status messages */
+.session-success {
+  margin-top: 15px;
+  color: var(--deep, #a57c00);
+  word-break: break-all;
+}
+
+.session-id {
+  font-weight: 600;
+}
+
+.session-error {
+  margin-top: 15px;
+  color: #e76f51;
+}
+
+/* --------------------------
+   Button theme from your CSS
+---------------------------*/
+button {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.6rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  border: none;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--honey, #d4a94d);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(139, 94, 60, 0.25);
+  border-radius: 10px;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--deep, #a57c00);
+}
+.btn-primary.active {
+  background: var(--deep, #a57c00);
+  box-shadow: 0 0 0 3px rgba(212, 169, 77, 0.35);
+}
+
+/* Optional: secondary button usage */
+.btn-secondary {
+  background: var(--sand, #f2e6d0);
+  color: var(--brown, #8b5e3c);
+  box-shadow: 0 2px 4px rgba(139, 94, 60, 0.15);
+  border-radius: 10px;
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--honey, #d4a94d);
+  color: #fff;
+}
+.btn-secondary.active {
+  background: var(--honey, #d4a94d);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(212, 169, 77, 0.35);
+}

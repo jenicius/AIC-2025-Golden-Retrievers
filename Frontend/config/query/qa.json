@@ -1,0 +1,11 @@
+{
+  "answerSets": [
+    {
+      "answers": [
+        {
+          "text": "QA-<ANSWER>-<VIDEO_ID>-<TIME(ms)>"
+        }
+      ]
+    }
+  ]
+}
