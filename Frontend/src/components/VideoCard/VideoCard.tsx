@@ -67,7 +67,7 @@ const VideoCard = memo(function VideoCard({ item, className }: Props) {
   const addToCsv = () => {
     window.dispatchEvent(
       new CustomEvent("csv:add", {
-        detail: { video_id: item.video_name, frame_idx: item.frame_idx },
+        detail: { video_id: item.video_name, frame_idx: item.frame_idx, time_ms: item.start_time * 1000 },
       })
     );
   };

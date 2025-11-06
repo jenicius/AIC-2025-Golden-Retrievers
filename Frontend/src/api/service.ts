@@ -37,14 +37,14 @@ export async function submitKIS(
     sessionId: string,
     evaluationId: string,
     videoId: string,
-    start: number,
-    end: number
+    time_ms: number,
 ) {
+    console.log('Submitting KIS with:', { sessionId, evaluationId, videoId, time_ms });
     try {
         const payload = JSON.parse(JSON.stringify(kis));
         payload.answerSets[0].answers[0].mediaItemName = videoId;
-        payload.answerSets[0].answers[0].start = start;
-        payload.answerSets[0].answers[0].end = end;
+        payload.answerSets[0].answers[0].start = time_ms;
+        payload.answerSets[0].answers[0].end = time_ms;
 
         const response = await api.post(`/submit/${evaluationId}`, payload, {
             params: {
