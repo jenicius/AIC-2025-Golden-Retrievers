@@ -1,4 +1,3 @@
-import { useState } from "react";
 import "./TextInput.css";
 
 interface TextInputProps {
@@ -42,7 +41,7 @@ function TextInput({
     <input
       className="text-input"
       type={type}
-      value={value}
+      // value={value}
       onChange={handleChange}
       placeholder={placeholder}
       min={min}
