@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class TextQueryRequest(BaseModel):
     model: str
@@ -28,3 +29,4 @@ class TextListQueryRequest(BaseModel):
     metric: str
     topK: int
     queryTextList: list[str]
+    
