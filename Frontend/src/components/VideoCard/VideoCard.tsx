@@ -135,7 +135,7 @@ const VideoCard = memo(function VideoCard({ item, className }: Props) {
               )}
               <div className="vg-btn-group">
                 <button type="button" className="vg-btn" onClick={addToCsv}>
-                  CSV
+                  Add
                 </button>
                 <button type ="button" className="vg-btn-deathnote" onClick={addToDeathNote}>
                   <FaSkull/>
@@ -143,9 +143,14 @@ const VideoCard = memo(function VideoCard({ item, className }: Props) {
               </div>
             </div>
 
-            <p className="vg-sub">
+            <div className="vg-sub-container">
+              <p className="vg-sub">
               frame ≈ {item.frame_idx}
-            </p>
+              </p>
+              <p className="vg-sub">
+              time ≈ {item.start_time.toFixed(2)}s
+              </p>
+            </div>
           </div>
         </>
       )}

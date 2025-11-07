@@ -82,6 +82,8 @@ export async function submitQA(
                 'Content-Type': 'application/json'
             }
         });
+        const qa_json = JSON.stringify(payload, null, 2);
+        console.log('Submitted QA payload:', qa_json);
         return response.data.Id;
     } catch (error) {
         console.error('Error submitting QA data:', error);
@@ -104,7 +106,8 @@ export async function submitTRAKE(
         payload.answerSets[0].answers[0].text = payload.answerSets[0].answers[0].text
             .replace("<VIDEO_ID>", videoId)
             .replace("<FRAME_ID1>,<FRAME_ID2>,...", framesString);
-
+        const trake_json = JSON.stringify(payload, null, 2);
+        console.log('Submitted QA payload:', trake_json);
         const response = await api.post(`/submit/${evaluationId}`, payload, {
             params: {
                 session: sessionId

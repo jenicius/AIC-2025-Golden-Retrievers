@@ -272,8 +272,6 @@ function App() {
               }}
         />
         <DeathNote />
-        <QueryView />
-        <SessionDisplay />
       </div>
 
       <div className="app-right">
