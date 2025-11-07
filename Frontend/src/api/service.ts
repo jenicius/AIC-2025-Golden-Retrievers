@@ -10,7 +10,7 @@ export async function getSessionID() {
       username: account.username,
       password: account.password,
     });
-    console.log("session response:", response.data);
+    // console.log("session response:", response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching session:', error);
@@ -25,7 +25,7 @@ export async function getEvaluationID(sessionId: string) {
                 session: sessionId
             }
         });
-        console.log("evaluation response:", response.data[0]);
+        // console.log("evaluation response:", response.data[0]);
         return response.data[0];
     } catch (error) {
         console.error('Error fetching evaluation ID:', error);
@@ -48,7 +48,7 @@ export async function submitKIS(
 
         const response = await api.post(`/submit/${evaluationId}`, payload, {
             params: {
-                sessionId: sessionId
+                session: sessionId
             },
             headers: {
                 'Content-Type': 'application/json'
@@ -76,7 +76,7 @@ export async function submitQA(
             .replace("<TIME(ms)>", time.toString());
         const response = await api.post(`/submit/${evaluationId}`, payload, {
             params: {
-                sessionId: sessionId
+                session: sessionId
             },
             headers: {
                 'Content-Type': 'application/json'
@@ -107,7 +107,7 @@ export async function submitTRAKE(
 
         const response = await api.post(`/submit/${evaluationId}`, payload, {
             params: {
-                sessionId: sessionId
+                session: sessionId
             },
             headers: {
                 'Content-Type': 'application/json'

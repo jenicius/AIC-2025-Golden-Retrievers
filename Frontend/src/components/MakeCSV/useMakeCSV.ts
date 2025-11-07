@@ -147,7 +147,7 @@ export function useMakeCSV() {
         submitKIS(sessionID, evaluationID, items[0].video_id, items[0].time_ms || 0);
       }
     },
-    [fileName, isQA, isTRAKE, items, nEvents]
+    [evaluationID, isQA, isTRAKE, items, sessionID]
   );
 
   return {
