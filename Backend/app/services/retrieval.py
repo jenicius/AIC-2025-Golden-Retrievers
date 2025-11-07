@@ -1,5 +1,3 @@
-# backend/app/services/golden_retriever.py
-
 import gc
 import os
 import json
@@ -12,6 +10,11 @@ from PIL import Image
 from app.core.config import settings
 from app.schemas.video import VideoItem
 import unicodedata
+from whoosh.qparser import QueryParser
+from whoosh.index import open_dir
+from typing import List, Optional, Set
+from collections import defaultdict
+import concurrent.futures
 
 #helper
 def strip_accents(text: str) -> str:
@@ -45,7 +48,13 @@ class GoldenRetriever:
         self.video_to_id = {(v[0], v[1]): k for k, v in self.id_to_video.items()}
         self.id_to_video = {int(k): v for k, v in self.id_to_video.items()}
         
+        self.full_index = json.load(open(f'{settings.DATA_PATH}/OCR/full_index.json', 'r', encoding='utf-8'))
+        self.word_index = json.load(open(f'{settings.DATA_PATH}/OCR/word_index.json', 'r', encoding='utf-8'))
+        
+        self.audio_index = open_dir(f'{settings.DATA_PATH}/Speech')
+        
         print("Initialization complete.")
+        print(self.device)
 
 
     def load_model(self, model_name: str):
@@ -57,6 +66,7 @@ class GoldenRetriever:
         
         if hasattr(self, "model") and self.model is not None:
             del self.model
+            del self.index
             torch.cuda.empty_cache()   
             gc.collect()              
         
@@ -78,24 +88,19 @@ class GoldenRetriever:
         results = []
         for i in ids:
             try:
-                video_name, frame_n = self.id_to_video[i]
-                
-                video_csv_path = f'{settings.DATA_PATH}/map-keyframes-aic25-b1/map-keyframes/{video_name}.csv'
-                video_csv = pd.read_csv(video_csv_path)
-                frame_row = video_csv[video_csv['n'] == frame_n]            
-                start_time = frame_row['pts_time'].values[0]
-                frame_idx = frame_row['frame_idx'].values[0]
+                video_name, frame_idx = self.id_to_video[i]
 
-                video_json_path = f'{settings.DATA_PATH}/media-info-aic25-b1/media-info/{video_name}.json'
+                video_json_path = f'{settings.DATA_PATH}/media-info-aic25/{video_name}.json'
                 video_json = json.load(open(video_json_path, encoding='utf-8'))
                 youtube_id = video_json.get('watch_url', '').split('?v=')[-1]
+                fps = video_json.get('fps', 0)  # Default to 30 if not found
 
                 results.append(
                     VideoItem(
                         id = i,
                         video_name = video_name,
                         youtube_id = youtube_id,
-                        start_time = round(start_time),
+                        start_time = round(frame_idx / fps) if fps is not None else 0,
                         frame_idx = frame_idx
                     )
                 )
@@ -123,7 +128,7 @@ class GoldenRetriever:
         
         processed_image = self.preprocess(image).unsqueeze(0).to(self.device)
         with torch.no_grad():
-            image_features = self.model.encode_image(processed_image).float().numpy()
+            image_features = self.model.encode_image(processed_image).cpu().float().numpy()
 
         distances, ids = self.index.search(image_features, topK)
         
@@ -134,53 +139,201 @@ class GoldenRetriever:
         ids = []
         queryText_norm = strip_accents(queryText).lower()
 
-        for ocr in os.listdir(f'{settings.DATA_PATH}/OCR'):
-            with open(f'{settings.DATA_PATH}/OCR/{ocr}', 'r', encoding='utf-8') as f:
-                ocr_data = json.load(f)
-                for id, texts in ocr_data.items():
-                    normalized_texts = [strip_accents(t).lower() for t in texts]
-                    if queryText_norm in ' '.join(normalized_texts):
-                        ids.append(int(id))
-                        if len(ids) >= topK:
-                            break
-
+        for text in self.full_index['corpus']:
+            text_norm = strip_accents(text).lower()
+            if queryText_norm in text_norm:
+                ids.extend(self.full_index['inverted_index'][text])
+                if len(ids) >= topK:
+                    break
+        
+        if len(ids) > topK:
+            ids = ids[:topK]
+        else:
+            match = {}
+            tokens = queryText_norm.split()
+            for token in tokens:
+                corpus = self.word_index['corpus']
+                match[token] = []
+                for word in corpus:
+                    if token in strip_accents(word):
+                        match[token].extend(self.word_index['inverted_index'][word])
+                match[token] = list(set(match[token]))
+            
+            scores = {}
+            for token in tokens:
+                for video_id in match[token]:
+                    if video_id not in scores:
+                        scores[video_id] = 0
+                    scores[video_id] += 1
+            sorted_scores = sorted(scores.items(), key=lambda x: (-x[1], x[0]))[:topK-len(ids)]
+            ids.extend([video_id for video_id, _ in sorted_scores])
+        
+        ids = [int(i) for i in ids]
         return self._format_results(ids)
     
-    def search_by_frame_idx(self, video_name: str, frame_idx: int, range: int) -> list[VideoItem]:
-        video_csv_path = f'{settings.DATA_PATH}/map-keyframes-aic25-b1/map-keyframes/{video_name}.csv'
-        video_csv = pd.read_csv(video_csv_path)
+    def search_by_speech(self, model: str, metric: str, topK: int, queryText: str) -> list[VideoItem]:
+        parser = QueryParser("content", self.audio_index.schema)
+        myquery = parser.parse(queryText)  
         
-        if frame_idx not in video_csv['frame_idx'].values:
-            raise ValueError(f"Frame index {frame_idx} not found in video {video_name}.")
+        ids = []
+        with self.audio_index.searcher() as searcher:
+            results = searcher.search(myquery, limit=topK)
+            for hit in results:
+                ids.extend([int(i) for i in hit['ids']])
         
-        frame_row = video_csv[video_csv['frame_idx'] >= frame_idx]
-        target_n = frame_row['n'].values[0]
+        return self._format_results(ids)
+    
+    
+    def search_by_frame_idx(self, video_name: str, frame_idx: int, window: int) -> list[VideoItem]:
+        video_json_path = f'{settings.DATA_PATH}/media-info-aic25/{video_name}.json'
+        if not os.path.exists(video_json_path):
+            raise ValueError(f"Video {video_name} not found.")
         
-        lower_bound = max(0, target_n - range)
-        upper_bound = target_n + range
-        
-        relevant_rows = video_csv[(video_csv['n'] >= lower_bound) & (video_csv['n'] <= upper_bound)]
-        
+        data = json.load(open(video_json_path, encoding='utf-8'))
+        fps = data.get('fps', 30)  # Default to 30 if not found
+        keyframes = data.get('keyframes', [])
+        if not keyframes:
+            raise ValueError(f"No keyframes found for video {video_name}.")
+        # Get the index in the array of the closest keyframe at or after the given frame_idx
+        choosen_idx = next((i for i, kf in enumerate(keyframes) if kf >= frame_idx), len(keyframes)-1)
+        start_idx = max(0, choosen_idx - window)
+        end_idx = min(len(keyframes) - 1, choosen_idx + window)
         results = []
-        for _, row in relevant_rows.iterrows():
-            n = row['n']
-            frame_idx = row['frame_idx']
-            pts_time = row['pts_time']
-            
-            video_json_path = f'{settings.DATA_PATH}/media-info-aic25-b1/media-info/{video_name}.json'
-            video_json = json.load(open(video_json_path, encoding='utf-8'))
-            youtube_id = video_json.get('watch_url', '').split('?v=')[-1]
-            
+        for i in range(start_idx, end_idx + 1):
+            frame = keyframes[i]
+            id = self.video_to_id.get((video_name, frame))
             results.append(
                 VideoItem(
-                    id = self.video_to_id.get((video_name, n), -1),
+                    id = id,
                     video_name = video_name,
-                    youtube_id = youtube_id,
-                    start_time = round(pts_time),
-                    frame_idx = frame_idx
+                    youtube_id = data.get('watch_url', '').split('?v=')[-1],
+                    start_time = round(frame / fps) if fps is not None else 0,
+                    frame_idx = frame
                 )
             )
-        
         return results
+        
+    def search_video_by_text(self, model: str, metric: str, topK: int, queryText: str) -> list[VideoItem]:
+        frames = self.search_by_text(model, metric, topK, queryText)
+        video = {}
 
+        for frame in frames:
+            if video.get(frame.video_name) is None:
+                video[frame.video_name] = frame
+            # elif frame.frame_idx < video[frame.video_name].frame_idx:
+            #     video[frame.video_name] = frame
+
+        return list(video.values())
+    
+    def search_video_by_text_list(self, model: str, metric: str, topK: int, queryTextList: list[str]) -> list[VideoItem]:
+        total_index: dict[str, int] = {}
+        video: dict[str,VideoItem] = {}
+        
+        query_results = [self.search_video_by_text(model, metric, topK, queryText) for queryText in queryTextList]
+        video_name_lists = {frame.video_name for result in query_results for frame in result}
+        for video_name in video_name_lists:
+            frame_idx = 0
+            cnt = 0
+            sum = 0
+            first_result = None
+            for result in query_results:
+                for (i,frame) in enumerate(result):
+                    if frame.video_name == video_name and frame.frame_idx > frame_idx:
+                        frame_idx = frame.frame_idx
+                        cnt += 1
+                        sum += i
+                        if first_result is None:
+                            first_result = frame
+            if first_result is not None:
+                video[video_name] = first_result
+                total_index[video_name] = sum + topK * (len(query_results) - cnt)
+        sorted_videos = sorted(video.values(), key=lambda f: total_index[f.video_name])
+        return sorted_videos
+    
+    def convert_time_to_frame_idx(self, video_name: str, time: float) -> int:
+        video_csv_path = f'{settings.DATA_PATH}/media-info-aic25/{video_name}.json'
+        with open(video_csv_path, 'r', encoding='utf-8') as f:
+            video_json = json.load(f)
+            fps = video_json.get('fps')  # Default to 30 if not found
+        if fps is not None:
+            return int(time * fps)
+        else:
+            raise ValueError(f"FPS information not found for video {video_name}.")
+        
+        
+    def search_by_multi_modal(
+        self,
+        model: str,
+        metric: str,
+        topK: int,
+        text_query: Optional[str] = None,
+        image_bytes: Optional[bytes] = None,
+        ocr_query: Optional[str] = None,
+        speech_query: Optional[str] = None
+    ) -> List['VideoItem']:
+
+        tasks = {
+            self.search_by_text: text_query,
+            self.search_by_image: image_bytes,
+            self.search_by_ocr: ocr_query,
+            self.search_by_speech: speech_query,
+        }
+        
+        active_tasks = [(func, query) for func, query in tasks.items() if query]
+
+        if not active_tasks:
+            return []
+        
+        if len(active_tasks) == 1:
+            func, query = active_tasks[0]
+            return func(model, metric, topK, query)
+
+        fetch_k = max(topK * 5, 100)
+        modality_counts = defaultdict(int)
+        rrf_scores = defaultdict(float)
+        RRF_K = 60
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            active_searches = {
+                executor.submit(search_func, model, metric, fetch_k, query): search_func
+                for search_func, query in tasks.items() if query
+            }
+
+            if not active_searches:
+                return []
+
+            for future in concurrent.futures.as_completed(active_searches):
+                try:
+                    video_items = future.result()
+                    search_func = active_searches[future]
+                    
+                    use_rrf = search_func in [self.search_by_text, self.search_by_image]
+
+                    for rank, item in enumerate(video_items):
+                        video_id = item.id
+                        modality_counts[video_id] += 1
+
+                        if use_rrf:
+                            rrf_scores[video_id] += 1 / (RRF_K + rank + 1)
+                        else:
+                            rrf_scores[video_id] += 1  # Just add 1 for OCR and speech
+
+                except Exception as exc:
+                    print(f'A search generated an exception: {exc}')
+
+        if not modality_counts:
+            return []
+
+        all_unique_ids = list(modality_counts.keys())
+
+        sorted_ids = sorted(
+            all_unique_ids,
+            key=lambda vid: (modality_counts[vid], rrf_scores[vid]),
+            reverse=True
+        )
+
+        return self._format_results(sorted_ids[:topK])
+
+
+        
 golden_retriever = GoldenRetriever()

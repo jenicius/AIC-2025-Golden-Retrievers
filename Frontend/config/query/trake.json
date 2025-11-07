@@ -1,0 +1,11 @@
+{
+  "answerSets": [
+    {
+      "answers": [
+        {
+          "text": "TR-<VIDEO_ID>-<FRAME_ID1>,<FRAME_ID2>,..."
+        }
+      ]
+    }
+  ]
+}

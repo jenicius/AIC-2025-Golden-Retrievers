@@ -1,50 +1,90 @@
 import { Card, Form, Button, Dropdown } from "react-bootstrap";
 import "./MakeCSV.css";
-import DropDown from "../DropDown/DropDown";
 import { useMakeCSV } from "./useMakeCSV";
+import { useEffect } from "react";
 
 function MakeCSV() {
   const {
     queryType, setQueryType,
-    fileName, setFileName,
     videoId, setVideoId,
     frameIdx, setFrameIdx,
+    videoTime, setVideoTime,
     numEvents, setNumEvents, 
     answer, setAnswer,
     items, isQA, isTRAKE,
     idxInvalid, numEventsInvalid,
     addDisabled, addItem, removeAt, onSubmit,
+    sessionID, setSessionID,
+    evaluationID, setEvaluationID,
+    fetchSession,
+    fetchEvaluation,
   } = useMakeCSV();
-
   return (
     <Card className="mcsv-card">
       <Card.Body>
         <form className="mcsv" onSubmit={onSubmit}>
           <div className="mcsv-row">
-            <label className="mcsv-label">File Name</label>
+            <Button 
+              type="button"
+              className="mcsv-btn mcsv-shrink"
+              onClick={fetchSession}
+            >
+              Fetch
+            </Button>
+            <label className="mcsv-label">Session ID</label>
             <Form.Control
               className="mcsv-input mcsv-grow"
-              value={fileName}
-              onChange={(e) => setFileName(e.target.value)}
-              placeholder="Don't include .csv at the end"
+              value={sessionID}
+              onChange={(e) => setSessionID(e.target.value)}
+              placeholder="Session ID"
+            />
+            
+            <Button 
+              type="button"
+              className="mcsv-btn mcsv-shrink"
+              onClick={fetchEvaluation}
+            >
+              Fetch
+            </Button>
+            <label className="mcsv-label">Evaluation ID</label>
+            <Form.Control 
+              className="mcsv-input mcsv-grow"
+              value={evaluationID}
+              onChange={(e) => setEvaluationID(e.target.value)}
+              placeholder="Evaluation ID"
             />
 
-            <DropDown
+            {/* <DropDown
               options={["KIS", "QA", "TRAKE"]}
               value={queryType}
               onChange={(value: string) => setQueryType(value as "" | "KIS" | "QA" | "TRAKE")}
-            />
+            /> */}
 
             <Button
               type="submit"
               className="mcsv-btn mcsv-shrink"
-              disabled={!fileName.trim() || items.length === 0}
+              disabled={items.length !== 1}
             >
-              Make CSV
+              Submit
             </Button>
           </div>
 
           <div className="mcsv-row">
+            {/* <DropDown
+              options={["KIS", "QA", "TRAKE"]}
+              value={queryType}
+              onChange={(value: string) => setQueryType(value as "" | "KIS" | "QA" | "TRAKE")}
+            /> */}
+            <Form.Select
+              className="mcsv-input mcsv-grow"
+              value={queryType}
+              onChange={(e) => setQueryType(e.target.value as "" | "KIS" | "QA" | "TRAKE")}
+            >
+              <option value="">Select Query Type</option>
+              <option value="KIS">KIS</option>
+              <option value="QA">QA</option>
+              <option value="TRAKE">TRAKE</option>
+            </Form.Select>
             <label className="mcsv-label">video_id</label>
             <Form.Control
               className="mcsv-input"
@@ -53,15 +93,31 @@ function MakeCSV() {
               placeholder="video123"
             />
 
-            <label className="mcsv-label">frame_idx</label>
-            <Form.Control
-              className="mcsv-input mcsv-idx"
-              type="number"
-              value={frameIdx}
-              onChange={(e) => setFrameIdx(e.target.value)}
-              placeholder="0"
-              isInvalid={idxInvalid}
-            />
+            {queryType !== "TRAKE" ? (
+              <>
+              <label className="mcsv-label">time(ms)</label>
+              <Form.Control
+                className="mcsv-input mcsv-idx"
+                type="number"
+                value={videoTime}
+                onChange={(e) => setVideoTime(e.target.value)}
+                placeholder="0"
+                isInvalid={idxInvalid}
+              />
+              </>
+            ) : (
+              <>
+              <label className="mcsv-label">frame_idx</label>
+              <Form.Control
+                className="mcsv-input mcsv-idx"
+                type="number"
+                value={frameIdx}
+                onChange={(e) => setFrameIdx(e.target.value)}
+                placeholder="0"
+                isInvalid={idxInvalid}
+              />
+              </>
+            )}
 
             {isQA && (
               <>
@@ -112,9 +168,9 @@ function MakeCSV() {
                       <div className="mcsv-items-row" key={it.id}>
                         <span className="mcsv-items-text">
                           {it.video_id}
-                          {it.answer && <> — {it.frame_idx} — {it.answer}</>}
-                          {it.frames && <> — [{it.frames.join(", ")}]</>}
-                          {!it.answer && !it.frames && <> — {it.frame_idx}</>}
+                          {queryType !== "TRAKE" && <> — {it.time_ms}</>}
+                          {queryType === "QA"  && <> — {it.frame_idx} — {it.answer}</>}
+                          {queryType === "TRAKE" && it.frames &&  <> — [{it.frames.join(", ")}]</>}
                         </span>
                         <button
                           type="button"

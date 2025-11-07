@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, memo } from "react";
 import "./VideoCard.css";
+import { FaSkull } from "react-icons/fa";
 
 export type VideoItem = {
   id: string;
@@ -60,13 +61,21 @@ const VideoCard = memo(function VideoCard({ item, className }: Props) {
 
   // preview_image_directory is already the image path
   useEffect(() => {
-    setPreviewUrl(`Batch1_small/Keyframes_${item.video_name.slice(0,3)}/${item.video_name}/${item.id}.jpg`);
-  }, []);
+    setPreviewUrl(`previews/${item.id}.jpg`);
+  }, [item.id]);
 
   const addToCsv = () => {
     window.dispatchEvent(
       new CustomEvent("csv:add", {
-        detail: { video_id: item.video_name, frame_idx: item.frame_idx },
+        detail: { video_id: item.video_name, frame_idx: item.frame_idx, time_ms: item.start_time * 1000 },
+      })
+    );
+  };
+
+  const addToDeathNote = () => {
+    window.dispatchEvent(
+      new CustomEvent("deathnote:add", {
+        detail: { video_name: item.video_name },
       })
     );
   };
@@ -124,13 +133,18 @@ const VideoCard = memo(function VideoCard({ item, className }: Props) {
                   Preview image
                 </button>
               )}
-              <button type="button" className="vg-btn" onClick={addToCsv}>
-                Add to CSV
+              <div className="vg-btn-group">
+                <button type="button" className="vg-btn" onClick={addToCsv}>
+                  CSV
+                </button>
+                <button type ="button" className="vg-btn-deathnote" onClick={addToDeathNote}>
+                  <FaSkull/>
               </button>
+              </div>
             </div>
 
             <p className="vg-sub">
-              Start: {start}s · frame ≈ {item.frame_idx}
+              frame ≈ {item.frame_idx}
             </p>
           </div>
         </>

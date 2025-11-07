@@ -26,3 +26,6 @@ Thumbs.db
 
 # Data
 Data/
+
+#config
+core/config.py

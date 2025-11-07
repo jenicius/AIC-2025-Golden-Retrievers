@@ -1,0 +1,13 @@
+{
+  "answerSets": [
+    {
+      "answers": [
+        {
+          "mediaItemName": "<VIDEO_ID>",
+          "start": "<TIME(ms)>",
+          "end": "<TIME(ms)>"
+        }
+      ]
+    }
+  ]
+}

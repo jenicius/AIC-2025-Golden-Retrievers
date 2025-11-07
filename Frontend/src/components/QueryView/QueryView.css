@@ -1,0 +1,72 @@
+.query-view {
+  font-family: Inter, system-ui, sans-serif;
+  color: var(--brown);
+}
+
+.query-title {
+  font-size: 1.25rem; /* smaller title */
+  font-weight: 600;
+  color: var(--deep);
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+.query-loading,
+.query-empty {
+  font-size: 1rem;
+  color: var(--brown);
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/* Dropdown */
+.query-dropdown {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.query-dropdown select {
+  padding: 0.6rem;
+  font-size: 1rem;
+  border-radius: 12px;
+  border: 2px solid var(--honey);
+  background: var(--cream);
+  color: var(--brown);
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.query-dropdown select:focus {
+  outline: none;
+  border-color: var(--deep);
+  box-shadow: 0 0 6px rgba(184,134,11,0.3);
+}
+
+/* Query display box */
+.query-display {
+  border: 2px solid var(--sand);
+  border-radius: 16px;
+  padding: 1rem;
+  background: var(--cream);
+  box-shadow: 0 2px 6px rgba(212, 169, 77, 0.2);
+}
+
+.query-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: var(--deep);
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.query-text {
+  font-family: "Courier New", monospace;
+  white-space: pre-wrap;
+  /* background: var(--beige); */
+  border-radius: 10px;
+  line-height: 1.5;
+  color: var(--brown);
+  overflow-x: auto;
+}

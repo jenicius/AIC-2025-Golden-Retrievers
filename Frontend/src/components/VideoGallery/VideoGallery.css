@@ -1,7 +1,7 @@
 /* Grid + scroll for the gallery container only */
 .vg-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 per row */
+  grid-template-columns: repeat(4, minmax(0, 1fr)); /* 4 per row */
   column-gap: 16px;
   row-gap: 10px;                 /* real space between rows */
   width: 100%;

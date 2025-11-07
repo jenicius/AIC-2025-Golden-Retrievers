@@ -74,7 +74,7 @@ export async function queryByFrameIdx(
   const form = new FormData();
   form.append("video_name", video_name);
   form.append("frame_idx", frame_idx.toString());
-  form.append("range", range.toString());
+  form.append("window", range.toString());
 
   const res = await fetch("http://127.0.0.1:8000/api/query/frame-idx", {
     method: "POST",
@@ -87,4 +87,129 @@ export async function queryByFrameIdx(
   console.log(res);
 
   return await res.json();
+}
+
+export async function queryVideoByTextList(
+  text: string,
+  topK: number,
+  model: string,
+  metric: string
+) {
+  // seperate text by \n into string list
+  const text_list = text.split("\n").map((t) => t.trim()).filter(Boolean);
+  console.log("Text list:", text_list);
+
+  const res = await fetch("http://127.0.0.1:8000/api/query/text-list-video", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ queryTextList: text_list, topK, model, metric }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  console.log(data);
+  return data;
+}
+
+export async function convertTimeToFrameIdx(
+  video_name: string,
+  time: string
+) {
+  // The format of time is "HH:MM:SS" or "MM:SS" or "SS"
+  // Convert to total seconds
+  const parts = time.split(":").map((p) => parseFloat(p));
+  let totalSeconds = 0;
+  if (parts.length === 3) {
+    totalSeconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+  }
+  else if (parts.length === 2) {
+    totalSeconds = parts[0] * 60 + parts[1];
+  }
+  else if (parts.length === 1) {
+    totalSeconds = parts[0];
+  }
+  else {
+    throw new Error("Invalid time format");
+  }
+
+  const form = new FormData();
+  form.append("video_name", video_name);
+  form.append("time", totalSeconds.toString());
+  const res = await fetch("http://127.0.0.1:8000/api/query/time-to-frame-idx", {
+    method: "POST",
+    body: form,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+
+  return await res.json();
+}
+
+export async function queryBySpeech(
+  text: string,
+  topK: number,
+  model: string,
+  metric: string
+) {
+  console.log("Query by speech:", text, topK, model, metric);
+  const res = await fetch("http://127.0.0.1:8000/api/query/speech", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ queryText: text, topK, model, metric }),
+  });
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+  const data = await res.json();
+  return data;
+}
+
+export async function queryByMultiModal(
+  text: string,
+  file: File | null,
+  ocrText: string,
+  speechText: string,
+  topK: number = 10,
+  model: string,
+  metric: string
+) {
+  const form = new FormData();
+
+  if (text) {
+    form.append('queryText', text);
+  }
+  if (ocrText) {
+    form.append('ocrText', ocrText);
+  }
+  if (speechText) {
+    form.append('speechText', speechText);
+  }
+
+  if (file) {
+    form.append('image', file);
+  }
+
+  form.append('topK', topK.toString());
+  form.append('model', model);
+  form.append('metric', metric);
+
+  const res = await fetch(`http://127.0.0.1:8000/api/query/multi-modal`, {
+    method: 'POST',
+    body: form
+  });
+
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+
+  if (!res.ok) {
+    throw new Error(`Server error: ${res.status}`);
+  }
+  const data = await res.json();
+  return data;
 }

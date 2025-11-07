@@ -1,54 +1,84 @@
 {
-    "ViT-L-14": {
+  "embedding": {
+    "displayName": "Embedding",
+    "models": {
+      "ViT-L-14": {
         "metrics": {
-            "l1": "L1 metrics",
-            "l2": "L2 metrics",
-            "cosine": "Cosine similarity"
+          "l1": "L1",
+          "l2": "L2",
+          "cosine": "Cosine"
         },
         "queryBy": {
-            "text": "Text",
-            "image": "Image"
+          "text": "Text",
+          "image": "Image",
+          "textlist": "Text List"
         }
-    },
-    "ViT-L-14-quickgelu": {
+      },
+      "ViT-L-14-quickgelu": {
         "metrics": {
-            "l1": "L1 metrics",
-            "l2": "L2 metrics",
-            "cosine": "Cosine similarity"
+          "l1": "L1",
+          "l2": "L2",
+          "cosine": "Cosine"
         },
         "queryBy": {
-            "text": "Text",
-            "image": "Image"
+          "text": "Text",
+          "image": "Image",
+          "textlist": "Text List"
         }
-    },
-    "ViT-H-14-quickgelu": {
+      },
+      "ViT-H-14-quickgelu": {
         "metrics": {
-            "l1": "L1 metrics",
-            "l2": "L2 metrics",
-            "cosine": "Cosine similarity"
+          "l1": "L1",
+          "l2": "L2",
+          "cosine": "Cosine"
         },
         "queryBy": {
-            "text": "Text",
-            "image": "Image"
+          "text": "Text",
+          "image": "Image",
+          "textlist": "Text List"
         }
-    },
-    "PE-Core-L-14-336": {
+      },
+      "PE-Core-L-14-336": {
         "metrics": {
-            "l1": "L1 metrics",
-            "l2": "L2 metrics",
-            "cosine": "Cosine similarity"
+          "l1": "L1",
+          "l2": "L2",
+          "cosine": "Cosine"
         },
         "queryBy": {
-            "text": "Text",
-            "image": "Image"
+          "text": "Text",
+          "image": "Image",
+          "textlist": "Text List"
         }
-    },
-    "ocr": {
-        "metrics": {
-        },
-        "queryBy": {
-            "ocr": "OCR"
-        }
+      }
     }
-       
+  },
+  "ocr": {
+    "displayName": "OCR",
+    "models": {
+      "EasyOCR": {
+        "metrics": {"fuzzy": "Fuzzy"},
+        "queryBy": {
+          "ocr": "OCR"
+        }
+      }
+    }
+  },
+  "speech": {
+    "displayName": "Speech",
+    "models": {
+      "PhoWhisper": {
+        "metrics": {"exact": "Exact"},
+        "queryBy": {
+          "speech": "Speech"
+        }
+      }
+    }
+  },
+  "multimodal": {
+    "displayName": "Multimodal",
+    "usesEmbeddingModels": true,
+    "queryBy": {
+      "multimodal": "Multimodal"
+    }
+  }
 }
