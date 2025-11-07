@@ -54,7 +54,8 @@ export async function submitKIS(
                 'Content-Type': 'application/json'
             }
         })
-        return response.data.sessionId;
+        console.log('KIS submission response:', response.data);
+        return response.data;
     } catch (error) {
         console.error('Error submitting KIS data:', error);
         throw error;
@@ -82,7 +83,8 @@ export async function submitQA(
                 'Content-Type': 'application/json'
             }
         });
-        return response.data.Id;
+        console.log('QA successfully submitted:', response.data);
+        return response.data;
     } catch (error) {
         console.error('Error submitting QA data:', error);
         throw error;

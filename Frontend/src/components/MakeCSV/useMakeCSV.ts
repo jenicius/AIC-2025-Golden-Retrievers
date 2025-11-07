@@ -126,7 +126,7 @@ export function useMakeCSV() {
         },
       ];
     });
-  }, [addDisabled, isTRAKE, isQA, idx, nEvents, videoId, answer]);
+  }, [addDisabled, isTRAKE, isQA, idx, nEvents, videoId, answer, videoTime]);
 
   const removeAt = useCallback((i: number) => {
     setItems((prev) => prev.filter((_, j) => j !== i));
