@@ -6,5 +6,4 @@ export { default as VideoGallery } from "./VideoGallery/VideoGallery";
 export { default as MakeCSV } from "./MakeCSV/MakeCSV";
 export { default as VideoCard } from "./VideoCard/VideoCard";
 export { default as DeathNote } from "./DeathNote/DeathNote";
-export { default as QueryView } from "./QueryView/QueryView";
 export { default as SessionDisplay } from "./SessionDisplay/SessionDisplay";

@@ -8,8 +8,6 @@ import {
   MakeCSV,
   VideoGallery,
   DeathNote,
-  QueryView,
-  SessionDisplay
 } from "./components";
 import rawConfig from "../config/models.json";
 import {

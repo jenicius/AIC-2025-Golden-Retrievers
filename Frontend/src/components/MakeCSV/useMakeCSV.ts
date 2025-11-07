@@ -126,7 +126,7 @@ export function useMakeCSV() {
         },
       ];
     });
-  }, [addDisabled, isTRAKE, isQA, idx, nEvents, videoId, answer]);
+  }, [addDisabled, isTRAKE, isQA, idx, nEvents, videoId, answer, videoTime]);
 
   const removeAt = useCallback((i: number) => {
     setItems((prev) => prev.filter((_, j) => j !== i));
@@ -147,7 +147,7 @@ export function useMakeCSV() {
         submitKIS(sessionID, evaluationID, items[0].video_id, items[0].time_ms || 0);
       }
     },
-    [evaluationID, isQA, isTRAKE, items, sessionID]
+    [evaluationID, isQA, isTRAKE, items, sessionID, videoId, videoTime, frameIdx, answer, numEvents]
   );
 
   return {
